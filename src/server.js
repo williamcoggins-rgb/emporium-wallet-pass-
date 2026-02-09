@@ -38,12 +38,12 @@ app.listen(config.port, config.host, async () => {
   if (existing.length === 0) {
     try {
       const pass = await passGenerator.generatePass({
-        description: 'Emporium Wallet Pass',
+        description: 'Emporium Grooming & Supply',
         primaryLabel: 'EMPORIUM',
-        primaryValue: 'Wallet Pass',
-        secondaryLabel: 'Type',
-        secondaryValue: 'General Access',
-        label: 'Emporium Wallet Pass',
+        primaryValue: 'Grooming & Supply',
+        secondaryLabel: 'Member',
+        secondaryValue: 'VIP Access',
+        label: 'Emporium Grooming & Supply',
       });
       console.log(`Default pass generated: ${pass.pageUrl}`);
     } catch (err) {

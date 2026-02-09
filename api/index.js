@@ -36,12 +36,12 @@ async function ensureDefaultPass() {
   if (existing.length === 0) {
     try {
       await passGenerator.generatePass({
-        description: 'Emporium Wallet Pass',
+        description: 'Emporium Grooming & Supply',
         primaryLabel: 'EMPORIUM',
-        primaryValue: 'Wallet Pass',
-        secondaryLabel: 'Type',
-        secondaryValue: 'General Access',
-        label: 'Emporium Wallet Pass',
+        primaryValue: 'Grooming & Supply',
+        secondaryLabel: 'Member',
+        secondaryValue: 'VIP Access',
+        label: 'Emporium Grooming & Supply',
       });
     } catch (err) {
       console.error('Failed to generate default pass:', err.message);

@@ -8,15 +8,11 @@ const passStore = require('./passStore');
 
 const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
 
-// Minimal 29x29 white PNG icon (base64-encoded)
-const ICON_PNG_BASE64 =
-  'iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAABWk2cPAAAAJklEQVRIS+3BAQ' +
-  'EAAACCIP+vbkhAAQAAAAAAAAAAAAAAAADcGwodAAH/dGkLAAAAAElFTkSuQmCC';
+// 29x29 branded teal icon with "E" for Emporium (base64 PNG)
+const ICON_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAABWk2cPAAAAP0lEQVR4nGNg2L/sP93xqKWjlo5aSnVLSQWjlpJt6YDE6cixlKK4HFKWjpw4HXQJiWiHjVpKUzxq6ailQ9ZSALIAik3OQY/xAAAAAElFTkSuQmCC';
 
-// Minimal 58x58 white PNG icon@2x
-const ICON_2X_PNG_BASE64 =
-  'iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAAAKElEQVRoQ+3BAQ' +
-  'EAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAAB8GToaAAGfKQMRAAAAAElFTkSuQmCC';
+// 58x58 branded teal icon@2x with "E" for Emporium (base64 PNG)
+const ICON_2X_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAAAdElEQVR4nO3YwQkAIQwEQPsvxDYs7WxBJGckzsJ+w843rY3+PdH0AaCgoKCgFZs+ABQUFBS0YqMO/RlQUFBQ0FVo1H1QUFBQ0BXobkBBQUFDoeGDQUFBQUF9GEBBQUEPQ69v+gBQUFBQ0IpNHwAKCgr6EnQCNu02D71nGncAAAAASUVORK5CYII=';
 
 function renderTemplate(template, vars) {
   let result = template;
@@ -32,14 +28,14 @@ function sha1(buffer) {
 
 async function generatePass(options = {}) {
   const {
-    description = 'Emporium Wallet Pass',
-    primaryLabel = 'PASS',
-    primaryValue = 'Emporium',
+    description = 'Emporium Grooming & Supply',
+    primaryLabel = 'EMPORIUM',
+    primaryValue = 'Grooming & Supply',
     secondaryLabel = 'Member',
-    secondaryValue = 'General Admission',
+    secondaryValue = 'VIP Access',
     barcodeMessage = null,
     teamIdentifier = 'EMPORIUM01',
-    passTypeIdentifier = 'pass.com.emporium.wallet',
+    passTypeIdentifier = 'pass.com.emporium.grooming',
   } = options;
 
   const serialNumber = uuidv4();
