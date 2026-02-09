@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const config = require('./config');
 const passRoutes = require('./routes/passRoutes');
+const passStore = require('./services/passStore');
+const passGenerator = require('./services/passGenerator');
 
 const app = express();
 
@@ -25,11 +27,31 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(config.port, config.host, () => {
+app.listen(config.port, config.host, async () => {
   console.log(`Emporium Wallet Pass server running at http://${config.host}:${config.port}`);
   console.log(`Base URL: ${config.baseUrl}`);
   console.log(`Pass storage: ${config.passStoragePath}`);
   console.log(`Email delivery: ${require('./services/emailDelivery').isConfigured() ? 'configured' : 'not configured (set SMTP_* env vars)'}`);
+
+  // Auto-generate a default pass if none exist
+  const existing = passStore.listPasses();
+  if (existing.length === 0) {
+    try {
+      const pass = await passGenerator.generatePass({
+        description: 'Emporium Wallet Pass',
+        primaryLabel: 'EMPORIUM',
+        primaryValue: 'Wallet Pass',
+        secondaryLabel: 'Type',
+        secondaryValue: 'General Access',
+        label: 'Emporium Wallet Pass',
+      });
+      console.log(`Default pass generated: ${pass.pageUrl}`);
+    } catch (err) {
+      console.error('Failed to generate default pass:', err.message);
+    }
+  } else {
+    console.log(`${existing.length} pass(es) already available`);
+  }
 });
 
 module.exports = app;

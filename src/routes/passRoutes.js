@@ -1,5 +1,6 @@
 const express = require('express');
 const passStore = require('../services/passStore');
+const passGenerator = require('../services/passGenerator');
 const qrGenerator = require('../services/qrGenerator');
 const emailDelivery = require('../services/emailDelivery');
 const upload = require('../middleware/upload');
@@ -7,6 +8,12 @@ const config = require('../config');
 const { renderDownloadPage, renderListPage } = require('../views/pages');
 
 const router = express.Router();
+
+// Generate a new wallet pass
+router.post('/pass/generate', express.json(), async (req, res) => {
+  const pass = await passGenerator.generatePass(req.body || {});
+  res.status(201).json(pass);
+});
 
 // Upload a new wallet pass
 router.post('/pass/upload', upload.single('passFile'), (req, res) => {

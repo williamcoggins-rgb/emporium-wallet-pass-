@@ -88,4 +88,53 @@ describe('Wallet Pass Server', () => {
     });
     assert.strictEqual(res.status, 400);
   });
+
+  it('generates a wallet pass via POST /pass/generate', async () => {
+    const body = JSON.stringify({
+      description: 'Test Pass',
+      primaryLabel: 'EVENT',
+      primaryValue: 'Test Event',
+      secondaryLabel: 'Seat',
+      secondaryValue: 'A1',
+    });
+    const res = await request('POST', '/pass/generate', {
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    });
+    assert.strictEqual(res.status, 201);
+    const data = res.json();
+    assert.ok(data.id);
+    assert.ok(data.downloadUrl);
+    assert.ok(data.qrUrl);
+    assert.ok(data.pageUrl);
+    assert.ok(data.serialNumber);
+
+    // Verify the pass can be downloaded
+    const dlRes = await request('GET', `/pass/${data.id}/download`);
+    assert.strictEqual(dlRes.status, 200);
+    assert.ok(dlRes.headers['content-type'].includes('application/vnd.apple.pkpass'));
+  });
+
+  it('shows generated pass on the web page', async () => {
+    const body = JSON.stringify({ description: 'Page Test Pass' });
+    const genRes = await request('POST', '/pass/generate', {
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    });
+    const data = genRes.json();
+
+    const pageRes = await request('GET', `/pass/${data.id}`);
+    assert.strictEqual(pageRes.status, 200);
+    assert.ok(pageRes.body.includes('Page Test Pass'));
+    assert.ok(pageRes.body.includes('Add to Wallet'));
+  });
+
+  it('lists generated passes', async () => {
+    const res = await request('GET', '/passes', {
+      headers: { Accept: 'application/json' },
+    });
+    assert.strictEqual(res.status, 200);
+    const data = res.json();
+    assert.ok(data.passes.length >= 1);
+  });
 });
