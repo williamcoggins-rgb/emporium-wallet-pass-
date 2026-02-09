@@ -52,10 +52,12 @@ async function ensureDefaultPass() {
   }
 }
 
-// Wrap with initialization middleware
-const handler = async (req, res) => {
+// Vercel serverless handler
+module.exports = async (req, res) => {
   await ensureDefaultPass();
+  // Strip /api prefix if Vercel passes it through
+  if (req.url.startsWith('/api')) {
+    req.url = req.url.slice(4) || '/';
+  }
   app(req, res);
 };
-
-module.exports = handler;
