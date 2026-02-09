@@ -1,0 +1,7 @@
+node_modules/
+.env
+passes/*.pkpass
+passes/*.json
+!passes/.gitkeep
+*.log
+.DS_Store
