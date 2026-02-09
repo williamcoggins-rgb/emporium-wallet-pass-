@@ -116,7 +116,7 @@ describe('Wallet Pass Server', () => {
   });
 
   it('shows generated pass on the web page', async () => {
-    const body = JSON.stringify({ description: 'Page Test Pass' });
+    const body = JSON.stringify({ memberName: 'Test Member' });
     const genRes = await request('POST', '/pass/generate', {
       headers: { 'Content-Type': 'application/json' },
       body,
@@ -125,8 +125,9 @@ describe('Wallet Pass Server', () => {
 
     const pageRes = await request('GET', `/pass/${data.id}`);
     assert.strictEqual(pageRes.status, 200);
-    assert.ok(pageRes.body.includes('Page Test Pass'));
-    assert.ok(pageRes.body.includes('Add to Wallet'));
+    assert.ok(pageRes.body.includes('Test Member'));
+    assert.ok(pageRes.body.includes('Apple Wallet'));
+    assert.ok(pageRes.body.includes('Google Wallet'));
   });
 
   it('lists generated passes', async () => {

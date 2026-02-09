@@ -41,6 +41,7 @@ function storePass(file, options = {}) {
     mimeType: file.mimetype || 'application/vnd.apple.pkpass',
     size: file.size,
     label: options.label || file.originalname,
+    member: options.member || null,
     createdAt: new Date().toISOString(),
     downloadCount: 0,
   };

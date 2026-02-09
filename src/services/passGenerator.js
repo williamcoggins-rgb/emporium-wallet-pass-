@@ -14,6 +14,10 @@ const ICON_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAABWk2cPAAAAP0lEQVR
 // 58x58 branded teal icon@2x with "E" for Emporium (base64 PNG)
 const ICON_2X_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAAAdElEQVR4nO3YwQkAIQwEQPsvxDYs7WxBJGckzsJ+w843rY3+PdH0AaCgoKCgFZs+ABQUFBS0YqMO/RlQUFBQ0FVo1H1QUFBQ0BXobkBBQUFDoeGDQUFBQUF9GEBBQUEPQ69v+gBQUFBQ0IpNHwAKCgr6EnQCNu02D71nGncAAAAASUVORK5CYII=';
 
+function generateMemberId() {
+  return 'EG-' + String(Math.floor(10000 + Math.random() * 90000));
+}
+
 function renderTemplate(template, vars) {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
@@ -28,30 +32,41 @@ function sha1(buffer) {
 
 async function generatePass(options = {}) {
   const {
-    description = 'Emporium Grooming & Supply',
-    primaryLabel = 'EMPORIUM',
-    primaryValue = 'Grooming & Supply',
-    secondaryLabel = 'Member',
-    secondaryValue = 'VIP Access',
-    barcodeMessage = null,
     teamIdentifier = 'EMPORIUM01',
     passTypeIdentifier = 'pass.com.emporium.grooming',
+    // Membership fields
+    memberName = 'Jane Doe',
+    tier = 'Gold',
+    points = 1250,
+    pointsMax = 1500,
+    status = 'Active',
+    memberSince = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+    memberId = generateMemberId(),
+    lastVisit = 'Today',
+    totalVisits = 24,
+    saved = '$186',
+    barcodeMessage = null,
   } = options;
 
   const serialNumber = uuidv4();
   const barcodeMsg = barcodeMessage || `${config.baseUrl}/verify/${serialNumber}`;
+  const description = `Emporium Grooming - ${memberName}`;
+  const nextReward = pointsMax - points;
 
-  // Render pass.json from template
+  // Build pass.json from template
   const templateSrc = fs.readFileSync(path.join(TEMPLATE_DIR, 'pass.json'), 'utf8');
   const passJson = renderTemplate(templateSrc, {
     serialNumber,
     teamIdentifier,
     passTypeIdentifier,
     description,
-    primaryLabel,
-    primaryValue,
-    secondaryLabel,
-    secondaryValue,
+    memberName,
+    tier,
+    points: String(points),
+    status,
+    memberSince,
+    memberId,
+    nextReward: String(nextReward),
     barcodeMessage: barcodeMsg,
   });
 
@@ -60,7 +75,6 @@ async function generatePass(options = {}) {
   const iconBuf = Buffer.from(ICON_PNG_BASE64, 'base64');
   const icon2xBuf = Buffer.from(ICON_2X_PNG_BASE64, 'base64');
 
-  // Build manifest.json (SHA1 hashes of all files)
   const manifest = {
     'pass.json': sha1(passJsonBuf),
     'icon.png': sha1(iconBuf),
@@ -68,7 +82,6 @@ async function generatePass(options = {}) {
   };
   const manifestBuf = Buffer.from(JSON.stringify(manifest), 'utf8');
 
-  // Create .pkpass archive (ZIP)
   const filename = `emporium-${serialNumber.slice(0, 8)}.pkpass`;
   const outputPath = path.join(config.passStoragePath, filename);
 
@@ -79,35 +92,29 @@ async function generatePass(options = {}) {
   await new Promise((resolve, reject) => {
     const output = fs.createWriteStream(outputPath);
     const archive = archiver('zip', { zlib: { level: 9 } });
-
     output.on('close', resolve);
     archive.on('error', reject);
     archive.pipe(output);
-
     archive.append(passJsonBuf, { name: 'pass.json' });
     archive.append(iconBuf, { name: 'icon.png' });
     archive.append(icon2xBuf, { name: 'icon@2x.png' });
     archive.append(manifestBuf, { name: 'manifest.json' });
-
     archive.finalize();
   });
 
-  // Register in the pass store
   const fileStats = fs.statSync(outputPath);
-  const fakeFile = {
-    path: outputPath,
+  const tmpPath = outputPath + '.tmp';
+  fs.copyFileSync(outputPath, tmpPath);
+
+  const storedPass = passStore.storePass({
+    path: tmpPath,
     originalname: filename,
     mimetype: 'application/vnd.apple.pkpass',
     size: fileStats.size,
-  };
-
-  // storePass copies then deletes, so we need a temp copy
-  const tmpPath = outputPath + '.tmp';
-  fs.copyFileSync(outputPath, tmpPath);
-  fakeFile.path = tmpPath;
-
-  const storedPass = passStore.storePass(fakeFile, {
+  }, {
     label: options.label || description,
+    // Store membership data alongside pass metadata
+    member: { memberName, tier, points, pointsMax, status, memberSince, memberId, nextReward, lastVisit, totalVisits, saved },
   });
 
   return {

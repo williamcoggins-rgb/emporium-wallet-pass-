@@ -1,35 +1,68 @@
 {
   "formatVersion": 1,
-  "passTypeIdentifier": "pass.com.emporium.grooming",
+  "passTypeIdentifier": "{{passTypeIdentifier}}",
   "serialNumber": "{{serialNumber}}",
   "teamIdentifier": "{{teamIdentifier}}",
   "organizationName": "Emporium Grooming & Supply",
   "description": "{{description}}",
-  "logoText": "Emporium Grooming",
+  "logoText": "Emporium",
   "foregroundColor": "rgb(240, 240, 245)",
   "backgroundColor": "rgb(15, 17, 23)",
   "labelColor": "rgb(0, 191, 166)",
   "generic": {
+    "headerFields": [
+      {
+        "key": "type",
+        "label": "",
+        "value": "MEMBER"
+      }
+    ],
     "primaryFields": [
       {
-        "key": "title",
-        "label": "{{primaryLabel}}",
-        "value": "{{primaryValue}}"
+        "key": "member",
+        "label": "MEMBER",
+        "value": "{{memberName}}"
       }
     ],
     "secondaryFields": [
       {
-        "key": "subtitle",
-        "label": "{{secondaryLabel}}",
-        "value": "{{secondaryValue}}"
+        "key": "tier",
+        "label": "TIER",
+        "value": "{{tier}}"
+      },
+      {
+        "key": "points",
+        "label": "POINTS",
+        "value": "{{points}}"
+      },
+      {
+        "key": "status",
+        "label": "STATUS",
+        "value": "{{status}}"
       }
     ],
-    "auxiliaryFields": [],
+    "auxiliaryFields": [
+      {
+        "key": "memberSince",
+        "label": "MEMBER SINCE",
+        "value": "{{memberSince}}"
+      },
+      {
+        "key": "memberId",
+        "label": "MEMBER ID",
+        "value": "{{memberId}}"
+      },
+      {
+        "key": "nextReward",
+        "label": "NEXT REWARD",
+        "value": "{{nextReward}} pts"
+      }
+    ],
     "backFields": [
       {
         "key": "info",
         "label": "About",
-        "value": "Emporium Grooming & Supply - Your premium grooming destination"
+        "value": "Emporium Grooming & Supply - Your premium grooming destination. Earn points on every visit and unlock rewards."
       },
       {
         "key": "website",
@@ -41,13 +74,15 @@
   "barcode": {
     "format": "PKBarcodeFormatQR",
     "message": "{{barcodeMessage}}",
-    "messageEncoding": "iso-8859-1"
+    "messageEncoding": "iso-8859-1",
+    "altText": "Scan to earn & redeem"
   },
   "barcodes": [
     {
       "format": "PKBarcodeFormatQR",
       "message": "{{barcodeMessage}}",
-      "messageEncoding": "iso-8859-1"
+      "messageEncoding": "iso-8859-1",
+      "altText": "Scan to earn & redeem"
     }
   ]
 }

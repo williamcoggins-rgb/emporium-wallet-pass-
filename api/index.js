@@ -36,11 +36,14 @@ async function ensureDefaultPass() {
   if (existing.length === 0) {
     try {
       await passGenerator.generatePass({
-        description: 'Emporium Grooming & Supply',
-        primaryLabel: 'EMPORIUM',
-        primaryValue: 'Grooming & Supply',
-        secondaryLabel: 'Member',
-        secondaryValue: 'VIP Access',
+        memberName: 'Jane Doe',
+        tier: 'Gold',
+        points: 1250,
+        pointsMax: 1500,
+        status: 'Active',
+        memberSince: 'Feb 2026',
+        totalVisits: 24,
+        saved: '$186',
         label: 'Emporium Grooming & Supply',
       });
     } catch (err) {
