@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const passStore = require('../services/passStore');
 const passGenerator = require('../services/passGenerator');
 const qrGenerator = require('../services/qrGenerator');
@@ -49,7 +50,8 @@ router.get('/pass/:id/download', (req, res) => {
 
   res.setHeader('Content-Type', contentType);
   res.setHeader('Content-Disposition', `attachment; filename="${pass.originalName}"`);
-  res.sendFile(pass.filePath);
+  const stream = fs.createReadStream(pass.filePath);
+  stream.pipe(res);
 });
 
 // Get QR code for a pass (as PNG image)
