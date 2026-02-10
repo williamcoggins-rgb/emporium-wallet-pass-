@@ -1,22 +1,28 @@
 /*
  * Emporium Grooming & Supply - Premium Barbershop Wallet Pass UI
  *
- * Design tokens (white cards, teal + red accents):
+ * Design language: tactile, textured, masculine premium
+ *   - Noise grain overlay for matte material feel
+ *   - 3D perspective tilt on hover
+ *   - Monogram watermark for brand depth
+ *   - Animated edge glow on VIP cards
+ *   - Dramatic hero staging with scale contrast
+ *   - Subtle barber-stripe page pattern
+ *
+ * Tokens:
  *   Primary:    #00BFA6 (teal)
- *   Accent:     #E8475F (red — progress, badges)
- *   Page bg:    #0F1117
- *   Surface:    #1A1D27
+ *   Accent:     #E8475F (red)
+ *   Page bg:    #0A0C10
+ *   Surface:    #14161E
  *   Card bg:    #FFFFFF
- *   Card text:  #1A1A2E
  *
  * Tiers:
- *   Regular:    teal (#00BFA6) — standard member
- *   VIP:        dark burnished gold (#8B7335 / #A08840 matte) — monthly VIP
+ *   Regular:    teal (#00BFA6)
+ *   VIP:        dark burnished gold (#8B7335 / #A08840)
  *
  * Font: Oswald (Nike-style bold condensed sans-serif)
  */
 
-// Scissors icon SVG for barbershop branding
 const SCISSORS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>`;
 
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
@@ -24,6 +30,10 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fi
   <text x="50%" y="54%" dominant-baseline="central" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="20" fill="#fff">E</text>
 </svg>`;
 const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toString('base64')}`;
+
+// Tiny 1-bit noise PNG for matte texture (4x4 repeating grain)
+const NOISE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#n)" opacity="0.08"/></svg>`;
+const NOISE_URI = `data:image/svg+xml;base64,${Buffer.from(NOISE_SVG).toString('base64')}`;
 
 function tierColor(tier) {
   const t = String(tier).toLowerCase();
@@ -34,7 +44,6 @@ function tierColor(tier) {
     gradient: 'linear-gradient(135deg, #5C4A1E 0%, #8B7335 30%, #A08840 50%, #8B7335 70%, #5C4A1E 100%)',
     isVip: true,
   };
-  // Regular tier
   return {
     bg: '#00BFA6',
     text: '#fff',
@@ -49,9 +58,10 @@ function baseStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap');
 
     :root {
-      --bg: #0F1117;
-      --surface: #1A1D27;
-      --border: #2E3345;
+      --bg: #0A0C10;
+      --surface: #14161E;
+      --surface-raised: #1A1D27;
+      --border: #2A2D3A;
       --text: #F0F0F5;
       --text-secondary: #C0C4D6;
       --muted: #6B7085;
@@ -68,7 +78,7 @@ function baseStyles() {
       --card-muted: #6B7085;
       --card-border: #E8EAF0;
       --card-label: #00BFA6;
-      --card-shadow: 0 8px 40px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08);
+      --card-shadow: 0 8px 40px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.1);
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -86,8 +96,12 @@ function baseStyles() {
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     @keyframes shimmer {
       0% { background-position: -200% center; }
@@ -95,6 +109,18 @@ function baseStyles() {
     }
     @keyframes progressGrow {
       from { width: 0; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    @keyframes borderRotate {
+      0% { --border-angle: 0deg; }
+      100% { --border-angle: 360deg; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
     }
   `;
 }
@@ -134,8 +160,15 @@ function renderDownloadPage(pass, baseUrl) {
     body {
       background: var(--bg);
       background-image:
-        radial-gradient(ellipse at 20% 0%, rgba(0,191,166,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 100%, rgba(232,71,95,0.04) 0%, transparent 60%);
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 40px,
+          rgba(255,255,255,0.008) 40px,
+          rgba(255,255,255,0.008) 41px
+        ),
+        radial-gradient(ellipse at 25% 0%, ${tc.isVip ? 'rgba(139,115,53,0.08)' : 'rgba(0,191,166,0.06)'} 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 100%, rgba(232,71,95,0.04) 0%, transparent 55%);
     }
 
     .page {
@@ -152,6 +185,7 @@ function renderDownloadPage(pass, baseUrl) {
       padding: 20px 0;
       border-bottom: 1px solid var(--border);
       margin-bottom: 0;
+      animation: fadeIn 0.4s ease both;
     }
     .topbar-brand {
       display: flex;
@@ -177,39 +211,46 @@ function renderDownloadPage(pass, baseUrl) {
     /* ---- HERO ---- */
     .hero {
       text-align: center;
-      padding: 48px 0 40px;
-      animation: fadeUp 0.5s ease both;
+      padding: 56px 0 48px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-icon-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .hero-rule {
+      width: 48px;
+      height: 1px;
+      background: ${tc.isVip ? 'linear-gradient(90deg, transparent, #A08840, transparent)' : 'linear-gradient(90deg, transparent, var(--primary), transparent)'};
     }
     .hero-scissors {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 48px;
-      height: 48px;
-      color: var(--primary);
-      margin-bottom: 16px;
-      opacity: 0.7;
+      width: 40px;
+      height: 40px;
+      color: ${tc.isVip ? '#A08840' : 'var(--primary)'};
     }
-    .hero-scissors svg { width: 28px; height: 28px; }
+    .hero-scissors svg { width: 24px; height: 24px; }
     .hero-greeting {
       font-family: var(--font-display);
-      font-size: 36px;
+      font-size: clamp(32px, 6vw, 52px);
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 4px;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       color: var(--text);
+      line-height: 1.1;
     }
-    .hero-sub {
-      font-size: 15px;
-      color: var(--muted);
-      max-width: 400px;
-      margin: 0 auto;
+    .hero-name {
+      display: block;
+      color: ${tc.isVip ? '#A08840' : 'var(--primary)'};
     }
-    .hero-sub strong { color: ${tc.bg}; font-weight: 700; }
     ${tc.isVip ? `
-    .hero-sub strong {
-      background: linear-gradient(90deg, #5C4A1E, #A08840, #8B7335, #A08840, #5C4A1E);
+    .hero-name {
+      background: linear-gradient(90deg, #5C4A1E, #A08840, #C5A55A, #A08840, #5C4A1E);
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -221,6 +262,27 @@ function renderDownloadPage(pass, baseUrl) {
       100% { background-position: 200% center; }
     }
     ` : ''}
+    .hero-sub {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 360px;
+      margin: 12px auto 0;
+      letter-spacing: 0.3px;
+    }
+    .hero-tier-tag {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 16px;
+      border-radius: 4px;
+      margin-top: 16px;
+      ${tc.isVip
+        ? 'background: rgba(160,136,64,0.12); color: #A08840; border: 1px solid rgba(160,136,64,0.2);'
+        : 'background: rgba(0,191,166,0.08); color: var(--primary); border: 1px solid rgba(0,191,166,0.15);'}
+    }
 
     /* ---- CARD GRID ---- */
     .cards {
@@ -228,7 +290,8 @@ function renderDownloadPage(pass, baseUrl) {
       justify-content: center;
       gap: 28px;
       flex-wrap: wrap;
-      animation: fadeUp 0.6s ease 0.1s both;
+      perspective: 1200px;
+      animation: fadeUp 0.7s ease 0.15s both;
     }
     .card-col {
       flex: 0 1 380px;
@@ -250,78 +313,152 @@ function renderDownloadPage(pass, baseUrl) {
 
     /* ---- CARD BASE ---- */
     .wallet-card {
+      position: relative;
       background: var(--card-bg);
       border-radius: 20px;
       overflow: hidden;
       box-shadow: var(--card-shadow);
       color: var(--card-text);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease;
+      transform-style: preserve-3d;
     }
     .wallet-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 48px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1);
+      transform: translateY(-6px) rotateX(2deg);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.12);
     }
 
-    /* Barbershop stripe at top of each card */
+    /* Noise texture overlay for matte material feel */
+    .wallet-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("${NOISE_URI}");
+      background-repeat: repeat;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 1;
+      border-radius: 20px;
+      mix-blend-mode: overlay;
+    }
+
+    /* Monogram watermark */
+    .wallet-card::after {
+      content: 'E';
+      position: absolute;
+      bottom: -20px;
+      right: -10px;
+      font-family: var(--font-display);
+      font-size: 180px;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 1;
+      color: ${tc.isVip ? '#f0e6cc' : 'var(--card-text)'};
+    }
+
+    .card-body { position: relative; z-index: 2; padding: 24px 28px 28px; }
+
+    /* Barbershop stripe at top of card */
     .card-stripe {
+      position: relative;
+      z-index: 2;
       height: 4px;
-      background: ${tc.isVip ? 'linear-gradient(90deg, #5C4A1E, #A08840, #5C4A1E)' : `linear-gradient(90deg, var(--primary), var(--accent))`};
+      background: ${tc.isVip ? 'linear-gradient(90deg, #3C3118, #A08840, #C5A55A, #A08840, #3C3118)' : 'linear-gradient(90deg, var(--primary), var(--accent), var(--primary))'};
+      background-size: 200% 100%;
+      animation: shimmer 4s linear infinite;
     }
 
     ${tc.isVip ? `
     /* ---- VIP DARK GOLD CARD OVERRIDES ---- */
     .wallet-card {
-      background: linear-gradient(145deg, #5C4A1E 0%, #7A6530 20%, #8B7335 40%, #A08840 55%, #8B7335 70%, #6B5828 85%, #5C4A1E 100%);
+      background: linear-gradient(155deg, #3C3118 0%, #5C4A1E 15%, #7A6530 30%, #8B7335 45%, #A08840 55%, #8B7335 65%, #6B5828 80%, #4A3C1A 100%);
       background-size: 300% 300%;
-      animation: goldShift 8s ease infinite;
-      box-shadow: 0 8px 40px rgba(60,48,20,0.45), 0 2px 8px rgba(0,0,0,0.25);
+      animation: goldShift 10s ease infinite;
+      box-shadow:
+        0 8px 40px rgba(40,32,12,0.5),
+        0 2px 8px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(160,136,64,0.15);
       color: #f0e6cc;
     }
     .wallet-card:hover {
-      box-shadow: 0 16px 56px rgba(60,48,20,0.55), 0 4px 12px rgba(0,0,0,0.3);
+      transform: translateY(-6px) rotateX(2deg);
+      box-shadow:
+        0 24px 64px rgba(40,32,12,0.6),
+        0 4px 12px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(160,136,64,0.2),
+        0 0 80px -20px rgba(160,136,64,0.15);
     }
+    .wallet-card::after { color: #f0e6cc; opacity: 0.06; }
+    .wallet-card::before { opacity: 0.3; mix-blend-mode: soft-light; }
     @keyframes goldShift {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
-    .card-stripe { height: 3px; background: linear-gradient(90deg, #5C4A1E, #A08840, #5C4A1E); }
-    .card-logo-name, .card-logo-name b { color: #f0e6cc; }
-    .member-label { color: rgba(240,230,204,0.45); }
-    .member-name { color: #f0e6cc; }
-    .field-label { color: rgba(240,230,204,0.45); }
-    .field-value { color: #f0e6cc; }
-    .aux-label { color: rgba(240,230,204,0.40); }
-    .aux-value { color: #f0e6cc; }
-    .progress-title { color: rgba(240,230,204,0.40); }
-    .progress-pct { color: #f0e6cc; }
-    .progress-track { background: rgba(0,0,0,0.25); }
-    .progress-fill { background: linear-gradient(90deg, #A08840, #C5A55A); }
-    .progress-label { color: rgba(240,230,204,0.40); }
-    .card-qr { border-top-color: rgba(240,230,204,0.12); }
-    .qr-frame { border-color: rgba(240,230,204,0.15); background: rgba(255,255,255,0.92); }
-    .qr-text { color: rgba(240,230,204,0.45); }
-    .card-stats { border-top-color: rgba(240,230,204,0.12); }
-    .stat-icon { color: rgba(240,230,204,0.4); }
-    .stat-value { color: #f0e6cc; }
-    .stat-label { color: rgba(240,230,204,0.40); }
-    .status-dot { background: #A08840; }
-    .tier-badge {
-      background: #1a1a1a;
-      color: #A08840;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-      animation: none;
-      border: 1px solid rgba(160,136,64,0.3);
-    }
-    /* Google card VIP overrides */
-    .google-member-name { color: #f0e6cc; }
-    .google-member-tier { color: rgba(240,230,204,0.5); }
-    .google-row { border-top-color: rgba(240,230,204,0.1); }
-    .google-row-label { color: rgba(240,230,204,0.45); }
-    .google-row-value { color: #f0e6cc; }
-    .google-progress { border-top-color: rgba(240,230,204,0.1); }
-    ` : ''}
 
-    .card-body { padding: 24px 28px 28px; }
+    /* VIP inner edge light */
+    .card-body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(160deg, rgba(192,168,80,0.25) 0%, transparent 40%, transparent 60%, rgba(192,168,80,0.1) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card-logo-name, .card-logo-name b { color: #f0e6cc; }
+    .member-label { color: rgba(240,230,204,0.4); }
+    .member-name { color: #f0e6cc; }
+    .field-label { color: rgba(240,230,204,0.4); }
+    .field-value { color: #f0e6cc; }
+    .aux-label { color: rgba(240,230,204,0.35); }
+    .aux-value { color: #f0e6cc; }
+    .progress-title { color: rgba(240,230,204,0.35); }
+    .progress-pct { color: #C5A55A; }
+    .progress-track { background: rgba(0,0,0,0.3); }
+    .progress-fill { background: linear-gradient(90deg, #8B7335, #C5A55A); box-shadow: 0 0 12px rgba(160,136,64,0.3); }
+    .progress-label { color: rgba(240,230,204,0.35); }
+    .card-qr { border-top-color: rgba(240,230,204,0.1); }
+    .qr-frame { border-color: rgba(240,230,204,0.12); background: rgba(255,255,255,0.92); }
+    .qr-text { color: rgba(240,230,204,0.4); }
+    .card-stats { border-top-color: rgba(240,230,204,0.1); }
+    .stat-icon { color: rgba(240,230,204,0.35); }
+    .stat-value { color: #f0e6cc; }
+    .stat-label { color: rgba(240,230,204,0.35); }
+    .status-dot { background: #A08840; box-shadow: 0 0 6px rgba(160,136,64,0.4); }
+    .tier-badge {
+      background: rgba(0,0,0,0.5);
+      color: #C5A55A;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(160,136,64,0.2);
+      animation: none;
+    }
+    .google-member-name { color: #f0e6cc; }
+    .google-member-tier { color: #A08840; }
+    .google-row { border-top-color: rgba(240,230,204,0.08); }
+    .google-row-label { color: rgba(240,230,204,0.4); }
+    .google-row-value { color: #f0e6cc; }
+    .google-progress { border-top-color: rgba(240,230,204,0.08); }
+    ` : `
+    /* Regular card inner edge light */
+    .card-body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(160deg, rgba(0,191,166,0.12) 0%, transparent 40%, transparent 60%, rgba(232,71,95,0.08) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 0;
+    }
+    `}
 
     /* Card header */
     .card-header {
@@ -348,9 +485,8 @@ function renderDownloadPage(pass, baseUrl) {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: ${tc.isVip ? tc.gradient : tc.bg};
-      ${tc.isVip ? 'background-size: 200% auto; animation: shimmerGold 3s linear infinite;' : ''}
-      color: ${tc.isVip ? '#1a1a1a' : tc.text};
+      background: ${tc.bg};
+      color: ${tc.text};
       font-family: var(--font-display);
       font-size: 11px;
       font-weight: 700;
@@ -361,19 +497,13 @@ function renderDownloadPage(pass, baseUrl) {
       box-shadow: 0 2px 8px ${tc.glow};
     }
     .tier-badge svg { width: 11px; height: 11px; }
-    ${tc.isVip ? `
-    @keyframes shimmerGold {
-      0% { background-position: -200% center; }
-      100% { background-position: 200% center; }
-    }
-    ` : ''}
 
     /* Member identity */
     .member-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       color: var(--card-label);
       margin-bottom: 3px;
     }
@@ -381,7 +511,7 @@ function renderDownloadPage(pass, baseUrl) {
       font-family: var(--font-display);
       font-size: 28px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--card-text);
       margin-bottom: 20px;
@@ -398,7 +528,7 @@ function renderDownloadPage(pass, baseUrl) {
       font-size: 9px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       color: var(--card-label);
       margin-bottom: 3px;
     }
@@ -427,7 +557,7 @@ function renderDownloadPage(pass, baseUrl) {
       font-size: 9px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 1px;
       color: var(--card-muted);
       margin-bottom: 2px;
     }
@@ -438,9 +568,7 @@ function renderDownloadPage(pass, baseUrl) {
     }
 
     /* Progress */
-    .progress-section {
-      margin-bottom: 4px;
-    }
+    .progress-section { margin-bottom: 4px; }
     .progress-header {
       display: flex;
       justify-content: space-between;
@@ -451,12 +579,13 @@ function renderDownloadPage(pass, baseUrl) {
       font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 1px;
       color: var(--card-muted);
     }
     .progress-pct {
-      font-size: 13px;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
       color: var(--accent);
     }
     .progress-track {
@@ -469,7 +598,7 @@ function renderDownloadPage(pass, baseUrl) {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), #FF6B81);
       border-radius: 3px;
-      animation: progressGrow 0.8s ease 0.3s both;
+      animation: progressGrow 1s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both;
     }
     .progress-label {
       font-size: 11px;
@@ -520,28 +649,30 @@ function renderDownloadPage(pass, baseUrl) {
       margin: 0 auto 4px;
       color: var(--card-label);
     }
-    .stat-icon svg { width: 14px; height: 14px; }
+    .stat-icon svg { width: 15px; height: 15px; }
     .stat-value {
-      font-size: 16px;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
       color: var(--card-text);
+      letter-spacing: 0.5px;
     }
     .stat-label {
       font-size: 9px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.8px;
       color: var(--card-muted);
       margin-top: 1px;
     }
 
-    /* ---- GOOGLE CARD SPECIFICS ---- */
+    /* ---- GOOGLE CARD ---- */
     .google-member-name {
       font-family: var(--font-display);
       font-size: 26px;
       font-weight: 700;
       color: var(--card-text);
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       margin-bottom: 2px;
     }
@@ -551,7 +682,7 @@ function renderDownloadPage(pass, baseUrl) {
       font-weight: 500;
       color: ${tc.bg};
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
       margin-bottom: 16px;
     }
     .google-row {
@@ -582,8 +713,17 @@ function renderDownloadPage(pass, baseUrl) {
     /* ---- CTA SECTION ---- */
     .cta-section {
       text-align: center;
-      margin-top: 40px;
-      animation: fadeUp 0.6s ease 0.2s both;
+      margin-top: 48px;
+      animation: fadeUp 0.7s ease 0.3s both;
+    }
+    .cta-label {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-bottom: 16px;
     }
     .cta-wallets {
       display: flex;
@@ -595,7 +735,7 @@ function renderDownloadPage(pass, baseUrl) {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 32px;
+      padding: 16px 36px;
       border: none;
       border-radius: 14px;
       font-family: var(--font);
@@ -604,22 +744,22 @@ function renderDownloadPage(pass, baseUrl) {
       cursor: pointer;
       text-decoration: none;
       line-height: 1;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
     }
     .btn-apple {
       background: #000;
       color: #fff;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     }
-    .btn-apple:hover { background: #1a1a1a; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .btn-apple:hover { background: #1a1a1a; transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+    .btn-apple svg { width: 18px; height: 18px; }
     .btn-google {
       background: var(--primary);
       color: #fff;
-      box-shadow: 0 2px 12px rgba(0,191,166,0.25);
+      box-shadow: 0 4px 16px rgba(0,191,166,0.25);
     }
-    .btn-google:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,191,166,0.35); }
-
-    .btn-apple svg, .btn-google svg { width: 18px; height: 18px; }
+    .btn-google:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,191,166,0.4); }
+    .btn-google svg { width: 18px; height: 18px; }
 
     .secondary-actions {
       display: flex;
@@ -642,22 +782,23 @@ function renderDownloadPage(pass, baseUrl) {
       cursor: pointer;
       text-decoration: none;
       line-height: 1;
-      transition: all 0.15s;
+      transition: all 0.2s;
     }
     .btn-ghost:hover {
       border-color: var(--primary);
       color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     /* ---- PERKS STRIP ---- */
     .perks {
       display: flex;
       justify-content: center;
-      gap: 32px;
-      margin-top: 40px;
-      padding: 24px 0;
+      gap: 48px;
+      margin-top: 48px;
+      padding: 32px 0;
       border-top: 1px solid var(--border);
-      animation: fadeUp 0.6s ease 0.3s both;
+      animation: fadeUp 0.7s ease 0.4s both;
     }
     .perk {
       text-align: center;
@@ -667,33 +808,44 @@ function renderDownloadPage(pass, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
-      margin: 0 auto 8px;
-      background: var(--surface);
-      border-radius: 10px;
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 10px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
       color: var(--primary);
+      transition: all 0.25s ease;
     }
-    .perk-icon svg { width: 18px; height: 18px; }
+    .perk:hover .perk-icon {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0,191,166,0.1);
+      transform: translateY(-2px);
+    }
+    .perk-icon svg { width: 20px; height: 20px; }
     .perk-title {
+      font-family: var(--font-display);
       font-size: 12px;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       color: var(--text);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .perk-desc {
       font-size: 11px;
       color: var(--muted);
-      line-height: 1.4;
+      line-height: 1.5;
     }
 
     /* ---- FOOTER ---- */
     .footer {
       text-align: center;
       margin-top: 32px;
-      padding: 16px 24px;
+      padding: 20px 24px;
       font-size: 11px;
       color: var(--muted);
+      border-top: 1px solid var(--border);
     }
     .footer a { color: var(--primary); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
@@ -701,11 +853,11 @@ function renderDownloadPage(pass, baseUrl) {
     @media (max-width: 720px) {
       .cards { gap: 20px; }
       .card-col { flex: 1 1 100%; max-width: 400px; }
-      .hero { padding: 32px 0 28px; }
-      .hero-greeting { font-size: 26px; }
+      .hero { padding: 40px 0 32px; }
+      .hero-greeting { font-size: 28px; letter-spacing: 2px; }
       .cta-wallets { flex-direction: column; align-items: center; }
       .btn-apple, .btn-google { width: 100%; max-width: 320px; justify-content: center; }
-      .perks { flex-wrap: wrap; gap: 20px; }
+      .perks { flex-wrap: wrap; gap: 24px; }
       .perk { flex: 0 1 120px; }
     }
   </style>
@@ -723,9 +875,17 @@ function renderDownloadPage(pass, baseUrl) {
     </div>
 
     <div class="hero">
-      <div class="hero-scissors">${SCISSORS_SVG}</div>
-      <div class="hero-greeting">Welcome, ${firstName}</div>
-      <div class="hero-sub">Your <strong>${tc.isVip ? 'VIP' : 'Member'}</strong> pass is ready. Add it to your wallet to earn points on every visit.</div>
+      <div class="hero-icon-row">
+        <div class="hero-rule"></div>
+        <div class="hero-scissors">${SCISSORS_SVG}</div>
+        <div class="hero-rule"></div>
+      </div>
+      <div class="hero-greeting">
+        Welcome Back
+        <span class="hero-name">${firstName}</span>
+      </div>
+      <div class="hero-sub">Your pass is ready. Add it to your wallet and start earning on every visit.</div>
+      <div class="hero-tier-tag">${tc.isVip ? 'VIP Member' : 'Member'}</div>
     </div>
 
     <div class="cards">
@@ -869,8 +1029,9 @@ function renderDownloadPage(pass, baseUrl) {
       </div>
     </div>
 
-    <!-- CTA: platform-specific wallet buttons -->
+    <!-- CTA -->
     <div class="cta-section">
+      <div class="cta-label">Add to your wallet</div>
       <div class="cta-wallets">
         <a class="btn-apple" href="${baseUrl}/pass/${pass.id}/download">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83"/><path d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
@@ -893,7 +1054,7 @@ function renderDownloadPage(pass, baseUrl) {
       </div>
     </div>
 
-    <!-- Barbershop Perks -->
+    <!-- Perks -->
     <div class="perks">
       <div class="perk">
         <div class="perk-icon">${SCISSORS_SVG}</div>
@@ -927,17 +1088,17 @@ function renderListPage(passes, baseUrl) {
     const tc = tierColor(m.tier);
     const pct = Math.round((Number(m.points) / Number(m.pointsMax || 1500)) * 100);
     return `
-    <a href="${baseUrl}/pass/${p.id}" class="pass-card${tc.isVip ? ' pass-card-vip' : ''}" style="animation-delay: ${i * 0.05}s; --tier-color: ${tc.bg};">
-      <div class="pass-card-stripe" style="background: ${tc.isVip ? 'transparent' : `linear-gradient(90deg, var(--primary), var(--accent))`};"></div>
+    <a href="${baseUrl}/pass/${p.id}" class="pass-card${tc.isVip ? ' pass-card-vip' : ''}" style="animation-delay: ${i * 0.06}s; --tier-color: ${tc.bg};">
+      <div class="pass-card-stripe" style="background: ${tc.isVip ? 'linear-gradient(90deg, #3C3118, #A08840, #C5A55A, #A08840, #3C3118)' : 'linear-gradient(90deg, var(--primary), var(--accent), var(--primary))'};"></div>
       <div class="pass-card-body">
         <div class="pass-card-top">
-          <div class="pass-avatar" style="background: ${tc.isVip ? 'linear-gradient(135deg, #5C4A1E, #1a1a1a)' : `linear-gradient(135deg, ${tc.bg}, var(--primary))`}; ${tc.isVip ? 'color: #A08840;' : ''}">${escapeHtml(m.memberName).charAt(0)}</div>
+          <div class="pass-avatar" style="background: ${tc.isVip ? 'linear-gradient(145deg, #5C4A1E, #3C3118)' : `linear-gradient(145deg, ${tc.bg}, #009E8B)`}; ${tc.isVip ? 'color: #A08840;' : ''}">${escapeHtml(m.memberName).charAt(0)}</div>
           <div class="pass-card-info">
             <div class="pass-card-name">${escapeHtml(m.memberName)}</div>
             <div class="pass-card-meta">${escapeHtml(m.memberId)} &middot; Since ${escapeHtml(m.memberSince)}</div>
           </div>
           <div class="pass-card-right">
-            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.isVip ? '#1a1a1a' : tc.bg}; color: ${tc.isVip ? '#A08840' : tc.text};">${escapeHtml(m.tier)}</span>
+            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.isVip ? 'rgba(0,0,0,0.5)' : tc.bg}; color: ${tc.isVip ? '#C5A55A' : tc.text};">${escapeHtml(m.tier)}</span>
             <span class="status-pill ${isActive ? 'status-active' : 'status-inactive'}"><span class="status-pip"></span>${escapeHtml(m.status)}</span>
           </div>
         </div>
@@ -947,7 +1108,7 @@ function renderListPage(passes, baseUrl) {
             <span class="points-label">pts</span>
           </div>
           <div class="pass-card-progress">
-            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.isVip ? 'linear-gradient(90deg, #A08840, #C5A55A)' : tc.bg};"></div></div>
+            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.isVip ? 'linear-gradient(90deg, #8B7335, #C5A55A)' : tc.bg};"></div></div>
           </div>
           <div class="pass-card-visits">${m.totalVisits || 0} visits</div>
         </div>
@@ -965,6 +1126,17 @@ function renderListPage(passes, baseUrl) {
   <style>
     ${baseStyles()}
 
+    body {
+      background-image:
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 40px,
+          rgba(255,255,255,0.008) 40px,
+          rgba(255,255,255,0.008) 41px
+        );
+    }
+
     .page {
       max-width: 720px;
       margin: 0 auto;
@@ -979,6 +1151,7 @@ function renderListPage(passes, baseUrl) {
       padding: 20px 0;
       border-bottom: 1px solid var(--border);
       margin-bottom: 32px;
+      animation: fadeIn 0.4s ease both;
     }
     .header-bar img { width: 36px; height: 36px; border-radius: 8px; }
     .header-brand {
@@ -995,13 +1168,14 @@ function renderListPage(passes, baseUrl) {
       align-items: flex-end;
       justify-content: space-between;
       margin-bottom: 28px;
+      animation: fadeUp 0.5s ease both;
     }
     .list-hero-left {}
     .list-title {
       font-family: var(--font-display);
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       text-transform: uppercase;
       margin-bottom: 4px;
     }
@@ -1013,7 +1187,7 @@ function renderListPage(passes, baseUrl) {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 10px 20px;
+      padding: 12px 24px;
       background: var(--primary);
       color: #fff;
       border: none;
@@ -1024,14 +1198,15 @@ function renderListPage(passes, baseUrl) {
       cursor: pointer;
       text-decoration: none;
       line-height: 1;
-      transition: all 0.2s;
-      box-shadow: 0 2px 8px rgba(0,191,166,0.2);
+      transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 4px 12px rgba(0,191,166,0.2);
     }
-    .btn-new-pass:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,166,0.3); }
+    .btn-new-pass:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,191,166,0.3); }
 
     /* Pass cards */
     .pass-card {
       display: block;
+      position: relative;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -1039,40 +1214,53 @@ function renderListPage(passes, baseUrl) {
       margin-bottom: 10px;
       text-decoration: none;
       color: var(--text);
-      transition: all 0.15s ease;
+      transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
       animation: fadeUp 0.4s ease both;
+    }
+    .pass-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("${NOISE_URI}");
+      background-repeat: repeat;
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: overlay;
     }
     .pass-card:hover {
       border-color: var(--tier-color, var(--primary));
-      box-shadow: 0 0 0 1px var(--tier-color, var(--primary)), 0 4px 20px rgba(0,0,0,0.15);
-      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px var(--tier-color, var(--primary)), 0 8px 28px rgba(0,0,0,0.2);
+      transform: translateY(-3px);
     }
+
     /* VIP dark gold card in list */
     .pass-card-vip {
-      background: linear-gradient(145deg, #5C4A1E 0%, #7A6530 20%, #8B7335 40%, #A08840 55%, #8B7335 70%, #6B5828 85%, #5C4A1E 100%);
+      background: linear-gradient(155deg, #3C3118 0%, #5C4A1E 15%, #7A6530 35%, #8B7335 50%, #7A6530 65%, #5C4A1E 85%, #3C3118 100%);
       background-size: 300% 300%;
-      animation: fadeUp 0.4s ease both, goldListShift 8s ease infinite;
-      border-color: #6B5828;
+      animation: fadeUp 0.4s ease both, goldListShift 10s ease infinite;
+      border-color: rgba(160,136,64,0.2);
       color: #f0e6cc;
+      box-shadow: 0 4px 20px rgba(40,32,12,0.3), inset 0 1px 0 rgba(160,136,64,0.1);
     }
     .pass-card-vip:hover {
       border-color: #8B7335;
-      box-shadow: 0 0 0 1px #8B7335, 0 8px 32px rgba(60,48,20,0.45);
+      box-shadow: 0 0 0 1px #8B7335, 0 12px 40px rgba(40,32,12,0.5), 0 0 60px -15px rgba(160,136,64,0.12);
     }
     .pass-card-vip .pass-card-name { color: #f0e6cc; }
-    .pass-card-vip .pass-card-meta { color: rgba(240,230,204,0.5); }
-    .pass-card-vip .pass-card-bottom { border-top-color: rgba(240,230,204,0.12); }
+    .pass-card-vip .pass-card-meta { color: rgba(240,230,204,0.45); }
+    .pass-card-vip .pass-card-bottom { border-top-color: rgba(240,230,204,0.1); }
     .pass-card-vip .points-num { color: #f0e6cc; }
-    .pass-card-vip .points-label { color: rgba(240,230,204,0.5); }
-    .pass-card-vip .mini-track { background: rgba(0,0,0,0.2); }
-    .pass-card-vip .pass-card-visits { color: rgba(240,230,204,0.5); }
+    .pass-card-vip .points-label { color: rgba(240,230,204,0.45); }
+    .pass-card-vip .mini-track { background: rgba(0,0,0,0.25); }
+    .pass-card-vip .pass-card-visits { color: rgba(240,230,204,0.45); }
     .pass-card-vip .status-active { color: #A08840; }
     @keyframes goldListShift {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
-    .pass-card-stripe { height: 3px; }
-    .pass-card-body { padding: 16px 20px; }
+    .pass-card-stripe { height: 3px; position: relative; z-index: 2; }
+    .pass-card-body { padding: 16px 20px; position: relative; z-index: 2; }
     .pass-card-top {
       display: flex;
       align-items: center;
@@ -1085,10 +1273,12 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-weight: 700;
       font-size: 18px;
       color: #fff;
       flex-shrink: 0;
+      letter-spacing: 1px;
     }
     .pass-card-info { flex: 1; min-width: 0; }
     .pass-card-name {
@@ -1114,16 +1304,13 @@ function renderListPage(passes, baseUrl) {
       font-family: var(--font-display);
       font-size: 10px;
       font-weight: 600;
-      padding: 4px 10px;
+      padding: 4px 12px;
       border-radius: 5px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
     }
     .tier-pill-vip {
-      background: #1a1a1a !important;
-      color: #A08840 !important;
-      border: 1px solid rgba(160,136,64,0.3);
-      animation: none;
+      box-shadow: inset 0 0 0 1px rgba(160,136,64,0.25);
     }
     .status-pill {
       display: inline-flex;
@@ -1147,13 +1334,13 @@ function renderListPage(passes, baseUrl) {
       padding-top: 12px;
       border-top: 1px solid var(--border);
     }
-    .pass-card-points {
-      flex-shrink: 0;
-    }
+    .pass-card-points { flex-shrink: 0; }
     .points-num {
-      font-size: 16px;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
       color: var(--text);
+      letter-spacing: 0.5px;
     }
     .points-label {
       font-size: 11px;
@@ -1161,9 +1348,7 @@ function renderListPage(passes, baseUrl) {
       color: var(--muted);
       margin-left: 2px;
     }
-    .pass-card-progress {
-      flex: 1;
-    }
+    .pass-card-progress { flex: 1; }
     .mini-track {
       height: 4px;
       background: var(--border);
@@ -1195,7 +1380,7 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--surface);
+      background: var(--surface-raised);
       border: 1px solid var(--border);
       border-radius: 24px;
       color: var(--primary);
@@ -1203,9 +1388,9 @@ function renderListPage(passes, baseUrl) {
     .empty-icon svg { width: 36px; height: 36px; }
     .empty-title {
       font-family: var(--font-display);
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 700;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       margin-bottom: 8px;
     }
@@ -1229,14 +1414,16 @@ function renderListPage(passes, baseUrl) {
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 2px 12px rgba(0,191,166,0.25);
+      transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 4px 16px rgba(0,191,166,0.25);
     }
-    .btn-create:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 24px rgba(0,191,166,0.35); }
+    .btn-create:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,191,166,0.35); }
 
     .footer {
       text-align: center;
       margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
       font-size: 11px;
       color: var(--muted);
     }
