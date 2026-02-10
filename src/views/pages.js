@@ -11,7 +11,7 @@
  *
  * Tiers:
  *   Regular:    teal (#00BFA6) — standard member
- *   VIP:        old gold metallic (#C5A55A / #E8D5A3 shimmer) — monthly VIP
+ *   VIP:        dark burnished gold (#8B7335 / #A08840 matte) — monthly VIP
  *
  * Font: Oswald (Nike-style bold condensed sans-serif)
  */
@@ -28,10 +28,10 @@ const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toStrin
 function tierColor(tier) {
   const t = String(tier).toLowerCase();
   if (t === 'vip' || t === 'gold') return {
-    bg: '#C5A55A',
+    bg: '#8B7335',
     text: '#fff',
-    glow: 'rgba(197,165,90,0.30)',
-    gradient: 'linear-gradient(135deg, #9A7B2F 0%, #C5A55A 30%, #E8D5A3 50%, #C5A55A 70%, #9A7B2F 100%)',
+    glow: 'rgba(107,90,40,0.35)',
+    gradient: 'linear-gradient(135deg, #5C4A1E 0%, #8B7335 30%, #A08840 50%, #8B7335 70%, #5C4A1E 100%)',
     isVip: true,
   };
   // Regular tier
@@ -209,12 +209,12 @@ function renderDownloadPage(pass, baseUrl) {
     .hero-sub strong { color: ${tc.bg}; font-weight: 700; }
     ${tc.isVip ? `
     .hero-sub strong {
-      background: linear-gradient(90deg, #9A7B2F, #E8D5A3, #C5A55A, #E8D5A3, #9A7B2F);
+      background: linear-gradient(90deg, #5C4A1E, #A08840, #8B7335, #A08840, #5C4A1E);
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      animation: shimmerGold 3s linear infinite;
+      animation: shimmerGold 4s linear infinite;
     }
     @keyframes shimmerGold {
       0% { background-position: -200% center; }
@@ -265,59 +265,60 @@ function renderDownloadPage(pass, baseUrl) {
     /* Barbershop stripe at top of each card */
     .card-stripe {
       height: 4px;
-      background: ${tc.isVip ? 'transparent' : `linear-gradient(90deg, var(--primary), var(--accent))`};
+      background: ${tc.isVip ? 'linear-gradient(90deg, #5C4A1E, #A08840, #5C4A1E)' : `linear-gradient(90deg, var(--primary), var(--accent))`};
     }
 
     ${tc.isVip ? `
-    /* ---- VIP GOLD CARD OVERRIDES ---- */
+    /* ---- VIP DARK GOLD CARD OVERRIDES ---- */
     .wallet-card {
-      background: linear-gradient(145deg, #C5A55A 0%, #E8D5A3 25%, #D4B868 50%, #E8D5A3 75%, #C5A55A 100%);
+      background: linear-gradient(145deg, #5C4A1E 0%, #7A6530 20%, #8B7335 40%, #A08840 55%, #8B7335 70%, #6B5828 85%, #5C4A1E 100%);
       background-size: 300% 300%;
-      animation: goldShift 6s ease infinite;
-      box-shadow: 0 8px 40px rgba(197,165,90,0.25), 0 2px 8px rgba(0,0,0,0.1);
-      color: #1a1a1a;
+      animation: goldShift 8s ease infinite;
+      box-shadow: 0 8px 40px rgba(60,48,20,0.45), 0 2px 8px rgba(0,0,0,0.25);
+      color: #f0e6cc;
     }
     .wallet-card:hover {
-      box-shadow: 0 16px 56px rgba(197,165,90,0.35), 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 16px 56px rgba(60,48,20,0.55), 0 4px 12px rgba(0,0,0,0.3);
     }
     @keyframes goldShift {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
-    .card-stripe { height: 0; }
-    .card-logo-name, .card-logo-name b { color: #1a1a1a; }
-    .member-label { color: rgba(0,0,0,0.5); }
-    .member-name { color: #1a1a1a; }
-    .field-label { color: rgba(0,0,0,0.5); }
-    .field-value { color: #1a1a1a; }
-    .aux-label { color: rgba(0,0,0,0.45); }
-    .aux-value { color: #1a1a1a; }
-    .progress-title { color: rgba(0,0,0,0.45); }
-    .progress-pct { color: #1a1a1a; }
-    .progress-track { background: rgba(0,0,0,0.12); }
-    .progress-fill { background: linear-gradient(90deg, #1a1a1a, #3a3a3a); }
-    .progress-label { color: rgba(0,0,0,0.45); }
-    .card-qr { border-top-color: rgba(0,0,0,0.1); }
-    .qr-frame { border-color: rgba(0,0,0,0.1); background: rgba(255,255,255,0.9); }
-    .qr-text { color: rgba(0,0,0,0.45); }
-    .card-stats { border-top-color: rgba(0,0,0,0.1); }
-    .stat-icon { color: rgba(0,0,0,0.4); }
-    .stat-value { color: #1a1a1a; }
-    .stat-label { color: rgba(0,0,0,0.45); }
-    .status-dot { background: #1a1a1a; }
+    .card-stripe { height: 3px; background: linear-gradient(90deg, #5C4A1E, #A08840, #5C4A1E); }
+    .card-logo-name, .card-logo-name b { color: #f0e6cc; }
+    .member-label { color: rgba(240,230,204,0.45); }
+    .member-name { color: #f0e6cc; }
+    .field-label { color: rgba(240,230,204,0.45); }
+    .field-value { color: #f0e6cc; }
+    .aux-label { color: rgba(240,230,204,0.40); }
+    .aux-value { color: #f0e6cc; }
+    .progress-title { color: rgba(240,230,204,0.40); }
+    .progress-pct { color: #f0e6cc; }
+    .progress-track { background: rgba(0,0,0,0.25); }
+    .progress-fill { background: linear-gradient(90deg, #A08840, #C5A55A); }
+    .progress-label { color: rgba(240,230,204,0.40); }
+    .card-qr { border-top-color: rgba(240,230,204,0.12); }
+    .qr-frame { border-color: rgba(240,230,204,0.15); background: rgba(255,255,255,0.92); }
+    .qr-text { color: rgba(240,230,204,0.45); }
+    .card-stats { border-top-color: rgba(240,230,204,0.12); }
+    .stat-icon { color: rgba(240,230,204,0.4); }
+    .stat-value { color: #f0e6cc; }
+    .stat-label { color: rgba(240,230,204,0.40); }
+    .status-dot { background: #A08840; }
     .tier-badge {
       background: #1a1a1a;
-      color: #E8D5A3;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      color: #A08840;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
       animation: none;
+      border: 1px solid rgba(160,136,64,0.3);
     }
     /* Google card VIP overrides */
-    .google-member-name { color: #1a1a1a; }
-    .google-member-tier { color: rgba(0,0,0,0.5); }
-    .google-row { border-top-color: rgba(0,0,0,0.1); }
-    .google-row-label { color: rgba(0,0,0,0.45); }
-    .google-row-value { color: #1a1a1a; }
-    .google-progress { border-top-color: rgba(0,0,0,0.1); }
+    .google-member-name { color: #f0e6cc; }
+    .google-member-tier { color: rgba(240,230,204,0.5); }
+    .google-row { border-top-color: rgba(240,230,204,0.1); }
+    .google-row-label { color: rgba(240,230,204,0.45); }
+    .google-row-value { color: #f0e6cc; }
+    .google-progress { border-top-color: rgba(240,230,204,0.1); }
     ` : ''}
 
     .card-body { padding: 24px 28px 28px; }
@@ -930,13 +931,13 @@ function renderListPage(passes, baseUrl) {
       <div class="pass-card-stripe" style="background: ${tc.isVip ? 'transparent' : `linear-gradient(90deg, var(--primary), var(--accent))`};"></div>
       <div class="pass-card-body">
         <div class="pass-card-top">
-          <div class="pass-avatar" style="background: ${tc.isVip ? '#1a1a1a' : `linear-gradient(135deg, ${tc.bg}, var(--primary))`};">${escapeHtml(m.memberName).charAt(0)}</div>
+          <div class="pass-avatar" style="background: ${tc.isVip ? 'linear-gradient(135deg, #5C4A1E, #1a1a1a)' : `linear-gradient(135deg, ${tc.bg}, var(--primary))`}; ${tc.isVip ? 'color: #A08840;' : ''}">${escapeHtml(m.memberName).charAt(0)}</div>
           <div class="pass-card-info">
             <div class="pass-card-name">${escapeHtml(m.memberName)}</div>
             <div class="pass-card-meta">${escapeHtml(m.memberId)} &middot; Since ${escapeHtml(m.memberSince)}</div>
           </div>
           <div class="pass-card-right">
-            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.isVip ? '#1a1a1a' : tc.bg}; color: ${tc.isVip ? '#E8D5A3' : tc.text};">${escapeHtml(m.tier)}</span>
+            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.isVip ? '#1a1a1a' : tc.bg}; color: ${tc.isVip ? '#A08840' : tc.text};">${escapeHtml(m.tier)}</span>
             <span class="status-pill ${isActive ? 'status-active' : 'status-inactive'}"><span class="status-pip"></span>${escapeHtml(m.status)}</span>
           </div>
         </div>
@@ -946,7 +947,7 @@ function renderListPage(passes, baseUrl) {
             <span class="points-label">pts</span>
           </div>
           <div class="pass-card-progress">
-            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.isVip ? '#1a1a1a' : tc.bg};"></div></div>
+            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.isVip ? 'linear-gradient(90deg, #A08840, #C5A55A)' : tc.bg};"></div></div>
           </div>
           <div class="pass-card-visits">${m.totalVisits || 0} visits</div>
         </div>
@@ -1046,26 +1047,26 @@ function renderListPage(passes, baseUrl) {
       box-shadow: 0 0 0 1px var(--tier-color, var(--primary)), 0 4px 20px rgba(0,0,0,0.15);
       transform: translateY(-2px);
     }
-    /* VIP gold card in list */
+    /* VIP dark gold card in list */
     .pass-card-vip {
-      background: linear-gradient(145deg, #C5A55A 0%, #E8D5A3 25%, #D4B868 50%, #E8D5A3 75%, #C5A55A 100%);
+      background: linear-gradient(145deg, #5C4A1E 0%, #7A6530 20%, #8B7335 40%, #A08840 55%, #8B7335 70%, #6B5828 85%, #5C4A1E 100%);
       background-size: 300% 300%;
-      animation: fadeUp 0.4s ease both, goldListShift 6s ease infinite;
-      border-color: #C5A55A;
-      color: #1a1a1a;
+      animation: fadeUp 0.4s ease both, goldListShift 8s ease infinite;
+      border-color: #6B5828;
+      color: #f0e6cc;
     }
     .pass-card-vip:hover {
-      border-color: #9A7B2F;
-      box-shadow: 0 0 0 1px #9A7B2F, 0 8px 32px rgba(197,165,90,0.3);
+      border-color: #8B7335;
+      box-shadow: 0 0 0 1px #8B7335, 0 8px 32px rgba(60,48,20,0.45);
     }
-    .pass-card-vip .pass-card-name { color: #1a1a1a; }
-    .pass-card-vip .pass-card-meta { color: rgba(0,0,0,0.5); }
-    .pass-card-vip .pass-card-bottom { border-top-color: rgba(0,0,0,0.1); }
-    .pass-card-vip .points-num { color: #1a1a1a; }
-    .pass-card-vip .points-label { color: rgba(0,0,0,0.5); }
-    .pass-card-vip .mini-track { background: rgba(0,0,0,0.1); }
-    .pass-card-vip .pass-card-visits { color: rgba(0,0,0,0.5); }
-    .pass-card-vip .status-active { color: #1a1a1a; }
+    .pass-card-vip .pass-card-name { color: #f0e6cc; }
+    .pass-card-vip .pass-card-meta { color: rgba(240,230,204,0.5); }
+    .pass-card-vip .pass-card-bottom { border-top-color: rgba(240,230,204,0.12); }
+    .pass-card-vip .points-num { color: #f0e6cc; }
+    .pass-card-vip .points-label { color: rgba(240,230,204,0.5); }
+    .pass-card-vip .mini-track { background: rgba(0,0,0,0.2); }
+    .pass-card-vip .pass-card-visits { color: rgba(240,230,204,0.5); }
+    .pass-card-vip .status-active { color: #A08840; }
     @keyframes goldListShift {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -1119,14 +1120,10 @@ function renderListPage(passes, baseUrl) {
       text-transform: uppercase;
     }
     .tier-pill-vip {
-      background-image: linear-gradient(135deg, #9A7B2F 0%, #C5A55A 30%, #E8D5A3 50%, #C5A55A 70%, #9A7B2F 100%) !important;
-      background-size: 200% auto;
-      color: #1a1a1a !important;
-      animation: shimmerGoldList 3s linear infinite;
-    }
-    @keyframes shimmerGoldList {
-      0% { background-position: -200% center; }
-      100% { background-position: 200% center; }
+      background: #1a1a1a !important;
+      color: #A08840 !important;
+      border: 1px solid rgba(160,136,64,0.3);
+      animation: none;
     }
     .status-pill {
       display: inline-flex;
