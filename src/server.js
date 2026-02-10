@@ -33,24 +33,36 @@ app.listen(config.port, config.host, async () => {
   console.log(`Pass storage: ${config.passStoragePath}`);
   console.log(`Email delivery: ${require('./services/emailDelivery').isConfigured() ? 'configured' : 'not configured (set SMTP_* env vars)'}`);
 
-  // Auto-generate a default pass if none exist
+  // Auto-generate sample passes if none exist (one Regular, one VIP)
   const existing = passStore.listPasses();
   if (existing.length === 0) {
     try {
-      const pass = await passGenerator.generatePass({
+      const vip = await passGenerator.generatePass({
         memberName: 'Jane Doe',
-        tier: 'Gold',
+        tier: 'VIP',
         points: 1250,
         pointsMax: 1500,
         status: 'Active',
         memberSince: 'Feb 2026',
         totalVisits: 24,
         saved: '$186',
-        label: 'Emporium Grooming & Supply',
+        label: 'Emporium Grooming & Supply - VIP',
       });
-      console.log(`Default pass generated: ${pass.pageUrl}`);
+      console.log(`Default VIP pass generated: ${vip.pageUrl}`);
+      const regular = await passGenerator.generatePass({
+        memberName: 'Mike Johnson',
+        tier: 'Regular',
+        points: 340,
+        pointsMax: 1000,
+        status: 'Active',
+        memberSince: 'Jan 2026',
+        totalVisits: 8,
+        saved: '$52',
+        label: 'Emporium Grooming & Supply - Regular',
+      });
+      console.log(`Default Regular pass generated: ${regular.pageUrl}`);
     } catch (err) {
-      console.error('Failed to generate default pass:', err.message);
+      console.error('Failed to generate default passes:', err.message);
     }
   } else {
     console.log(`${existing.length} pass(es) already available`);

@@ -27,7 +27,7 @@ const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toStrin
 
 function tierColor(tier) {
   const t = String(tier).toLowerCase();
-  if (t === 'vip') return {
+  if (t === 'vip' || t === 'gold') return {
     bg: '#C5A55A',
     text: '#fff',
     glow: 'rgba(197,165,90,0.30)',
