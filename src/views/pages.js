@@ -1,17 +1,20 @@
 /*
- * Emporium Grooming & Supply - Wallet Pass UI
+ * Emporium Grooming & Supply - Premium Barbershop Wallet Pass UI
  *
  * Design tokens (white cards, teal + red accents):
  *   Primary:    #00BFA6 (teal)
- *   Accent:     #E8475F (red — progress, badges, highlights)
+ *   Accent:     #E8475F (red — progress, tier badges)
  *   Page bg:    #0F1117
  *   Surface:    #1A1D27
- *   Card bg:    #FFFFFF (both Apple + Google)
+ *   Card bg:    #FFFFFF
  *   Card text:  #1A1A2E
- *   Card muted: #6B7085
- *   Text:       #F0F0F5
- *   Muted:      #8B8FA3
+ *   Gold tier:  #D4A853
+ *   Silver tier:#94A3B8
+ *   Platinum:   #A78BFA
  */
+
+// Scissors icon SVG for barbershop branding
+const SCISSORS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>`;
 
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
   <rect width="40" height="40" rx="10" fill="#00BFA6"/>
@@ -19,16 +22,17 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fi
 </svg>`;
 const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toString('base64')}`;
 
-// Dark-background version of logo for use on white cards
-const LOGO_DARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
-  <rect width="40" height="40" rx="10" fill="#00BFA6"/>
-  <text x="50%" y="54%" dominant-baseline="central" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="20" fill="#fff">E</text>
-</svg>`;
-const LOGO_DARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_DARK_SVG).toString('base64')}`;
+function tierColor(tier) {
+  const t = String(tier).toLowerCase();
+  if (t === 'platinum') return { bg: '#A78BFA', text: '#fff', glow: 'rgba(167,139,250,0.25)' };
+  if (t === 'gold') return { bg: '#D4A853', text: '#fff', glow: 'rgba(212,168,83,0.25)' };
+  if (t === 'silver') return { bg: '#94A3B8', text: '#fff', glow: 'rgba(148,163,184,0.25)' };
+  return { bg: '#00BFA6', text: '#fff', glow: 'rgba(0,191,166,0.25)' };
+}
 
 function baseStyles() {
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
 
     :root {
       --bg: #0F1117;
@@ -39,19 +43,18 @@ function baseStyles() {
       --muted: #6B7085;
       --primary: #00BFA6;
       --primary-hover: #00D9BD;
-      --primary-glow: rgba(0,191,166,0.15);
       --accent: #E8475F;
       --accent-bg: rgba(232,71,95,0.10);
       --green-dot: #34D399;
       --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-display: 'Playfair Display', Georgia, serif;
 
-      /* Card tokens (white cards) */
       --card-bg: #FFFFFF;
       --card-text: #1A1A2E;
       --card-muted: #6B7085;
       --card-border: #E8EAF0;
       --card-label: #00BFA6;
-      --card-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06);
+      --card-shadow: 0 8px 40px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08);
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,6 +69,18 @@ function baseStyles() {
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes progressGrow {
+      from { width: 0; }
     }
   `;
 }
@@ -89,138 +104,215 @@ function defaultMember() {
 function renderDownloadPage(pass, baseUrl) {
   const m = (pass.member && pass.member.memberName) ? pass.member : defaultMember();
   const pct = Math.round((m.points / m.pointsMax) * 100);
+  const tc = tierColor(m.tier);
+  const firstName = escapeHtml(m.memberName).split(' ')[0];
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(m.memberName)} - Emporium Member Pass</title>
+  <title>${escapeHtml(m.memberName)} - Emporium Grooming &amp; Supply</title>
   <link rel="icon" href="${LOGO_DATA_URI}">
   <style>
     ${baseStyles()}
 
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(0,191,166,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(232,71,95,0.04) 0%, transparent 60%);
+    }
+
     .page {
-      padding: 32px 24px 48px;
       max-width: 960px;
       margin: 0 auto;
+      padding: 0 24px 48px;
     }
 
-    /* -- Header -- */
-    .page-header {
+    /* ---- TOP BAR ---- */
+    .topbar {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 40px;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
     }
-    .page-header img { width: 28px; height: 28px; border-radius: 6px; }
-    .page-header-text {
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-brand img { width: 32px; height: 32px; border-radius: 8px; }
+    .topbar-brand-text {
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: -0.3px;
+    }
+    .topbar-brand-text b { color: var(--primary); font-weight: 800; }
+    .topbar-nav a {
+      color: var(--muted);
+      text-decoration: none;
       font-size: 13px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 2.5px;
-      color: var(--muted);
+      transition: color 0.15s;
     }
+    .topbar-nav a:hover { color: var(--primary); }
 
-    /* -- Card Previews -- */
-    .previews {
+    /* ---- HERO ---- */
+    .hero {
+      text-align: center;
+      padding: 48px 0 40px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .hero-scissors {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      color: var(--primary);
+      margin-bottom: 16px;
+      opacity: 0.7;
+    }
+    .hero-scissors svg { width: 28px; height: 28px; }
+    .hero-greeting {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .hero-sub {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .hero-sub strong { color: ${tc.bg}; font-weight: 700; }
+
+    /* ---- CARD GRID ---- */
+    .cards {
       display: flex;
       justify-content: center;
-      gap: 32px;
+      gap: 28px;
       flex-wrap: wrap;
+      animation: fadeUp 0.6s ease 0.1s both;
     }
-    .preview-col {
+    .card-col {
       flex: 0 1 380px;
       min-width: 300px;
     }
-    .preview-label {
+    .card-platform {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 700;
       color: var(--muted);
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
-    .preview-label svg { opacity: 0.5; }
+    .card-platform svg { width: 13px; height: 13px; opacity: 0.5; }
 
-    /* ---- SHARED CARD BASE (white) ---- */
+    /* ---- WHITE CARD ---- */
     .wallet-card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 28px;
+      border-radius: 20px;
+      overflow: hidden;
       box-shadow: var(--card-shadow);
       color: var(--card-text);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .wallet-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    /* ---- APPLE WALLET CARD ---- */
-    .apple-header {
+    /* Barbershop stripe at top of each card */
+    .card-stripe {
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), ${tc.bg}, var(--accent));
+    }
+
+    .card-body { padding: 24px 28px 28px; }
+
+    /* Card header */
+    .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .card-logo {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .card-logo img { width: 32px; height: 32px; border-radius: 7px; }
-    .card-logo-text {
+    .card-logo img { width: 30px; height: 30px; border-radius: 7px; }
+    .card-logo-name {
       font-weight: 800;
-      font-size: 18px;
+      font-size: 16px;
       letter-spacing: -0.3px;
       color: var(--card-text);
     }
-    .card-logo-text span { color: var(--primary); }
+    .card-logo-name b { color: var(--primary); font-weight: 800; }
 
-    .badge-tier {
-      background: var(--accent);
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 5px 14px;
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: ${tc.bg};
+      color: ${tc.text};
+      font-size: 10px;
+      font-weight: 800;
+      padding: 5px 12px;
       border-radius: 6px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
+      box-shadow: 0 2px 8px ${tc.glow};
     }
+    .tier-badge svg { width: 11px; height: 11px; }
 
-    .apple-member-label {
-      color: var(--card-label);
+    /* Member identity */
+    .member-label {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 4px;
+      color: var(--card-label);
+      margin-bottom: 3px;
     }
-    .apple-member-name {
+    .member-name {
+      font-family: var(--font-display);
       font-size: 26px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
       color: var(--card-text);
-      margin-bottom: 24px;
-    }
-
-    .apple-fields-row {
-      display: flex;
-      gap: 0;
       margin-bottom: 20px;
     }
-    .apple-field { flex: 1; }
+
+    /* Fields */
+    .fields-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+    }
+    .field { flex: 1; }
     .field-label {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--card-label);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .field-value {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--card-text);
       display: flex;
@@ -229,45 +321,64 @@ function renderDownloadPage(pass, baseUrl) {
     }
     .status-dot {
       display: inline-block;
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--green-dot);
     }
-
-    .apple-aux-row {
+    .aux-row {
       display: flex;
       gap: 0;
       margin-bottom: 16px;
     }
-    .apple-aux-field { flex: 1; }
+    .aux-field { flex: 1; }
     .aux-label {
       font-size: 9px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--card-muted);
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
     .aux-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--card-text);
     }
 
-    /* Progress bar */
-    .progress-section { margin-bottom: 4px; }
+    /* Progress */
+    .progress-section {
+      margin-bottom: 4px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .progress-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--card-muted);
+    }
+    .progress-pct {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent);
+    }
     .progress-track {
-      height: 4px;
-      background: var(--card-border);
-      border-radius: 2px;
+      height: 6px;
+      background: #F0F1F5;
+      border-radius: 3px;
       overflow: hidden;
     }
     .progress-fill {
       height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: width 0.4s ease;
+      background: linear-gradient(90deg, var(--accent), #FF6B81);
+      border-radius: 3px;
+      animation: progressGrow 0.8s ease 0.3s both;
     }
     .progress-label {
       font-size: 11px;
@@ -275,339 +386,437 @@ function renderDownloadPage(pass, baseUrl) {
       margin-top: 6px;
     }
 
-    /* QR section */
+    /* QR */
     .card-qr {
       text-align: center;
-      margin-top: 24px;
-      padding-top: 20px;
+      margin-top: 20px;
+      padding-top: 16px;
       border-top: 1px solid var(--card-border);
     }
     .qr-frame {
       display: inline-block;
-      padding: 12px;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
+      padding: 10px;
+      border: 2px solid #F0F1F5;
+      border-radius: 14px;
+      background: #fff;
     }
     .qr-frame img {
       display: block;
-      width: 128px;
-      height: 128px;
+      width: 120px;
+      height: 120px;
     }
     .qr-text {
       margin-top: 8px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--card-muted);
     }
 
-    /* Stats strip */
+    /* Stats */
     .card-stats {
       display: flex;
-      margin-top: 20px;
-      padding-top: 16px;
+      margin-top: 16px;
+      padding-top: 14px;
       border-top: 1px solid var(--card-border);
     }
     .stat {
       flex: 1;
       text-align: center;
     }
+    .stat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 4px;
+      color: var(--card-label);
+    }
+    .stat-icon svg { width: 14px; height: 14px; }
+    .stat-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--card-text);
+    }
     .stat-label {
       font-size: 9px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.6px;
       color: var(--card-muted);
-      margin-bottom: 4px;
-    }
-    .stat-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--card-text);
+      margin-top: 1px;
     }
 
-    /* ---- GOOGLE WALLET CARD ---- */
-    .google-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .google-type {
-      font-size: 13px;
-      color: var(--card-muted);
-      font-weight: 500;
-    }
-
+    /* ---- GOOGLE CARD SPECIFICS ---- */
     .google-member-name {
+      font-family: var(--font-display);
       font-size: 24px;
       font-weight: 800;
       color: var(--card-text);
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
       margin-bottom: 2px;
     }
     .google-member-tier {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      color: var(--accent);
+      color: ${tc.bg};
       text-transform: uppercase;
       letter-spacing: 0.3px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
-
     .google-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 0;
+      padding: 11px 0;
       border-top: 1px solid var(--card-border);
     }
     .google-row-label {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--card-muted);
       font-weight: 500;
     }
     .google-row-value {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--card-text);
       display: flex;
       align-items: center;
       gap: 6px;
     }
-
     .google-progress {
-      padding: 12px 0;
+      padding: 11px 0;
       border-top: 1px solid var(--card-border);
     }
 
-    /* ---- PRIMARY ACTION ---- */
-    .primary-action {
+    /* ---- CTA SECTION ---- */
+    .cta-section {
       text-align: center;
       margin-top: 40px;
+      animation: fadeUp 0.6s ease 0.2s both;
     }
-    .btn-wallet {
+    .cta-wallets {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-apple, .btn-google {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 10px;
-      padding: 16px 40px;
-      background: var(--primary);
-      color: #fff;
+      padding: 14px 32px;
       border: none;
       border-radius: 14px;
       font-family: var(--font);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
       line-height: 1;
       transition: all 0.2s;
+    }
+    .btn-apple {
+      background: #000;
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .btn-apple:hover { background: #1a1a1a; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .btn-google {
+      background: var(--primary);
+      color: #fff;
       box-shadow: 0 2px 12px rgba(0,191,166,0.25);
     }
-    .btn-wallet:hover {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 24px rgba(0,191,166,0.35);
-    }
-    .btn-wallet:active { transform: translateY(0); }
+    .btn-google:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,191,166,0.35); }
 
-    /* ---- SECONDARY ACTIONS ---- */
+    .btn-apple svg, .btn-google svg { width: 18px; height: 18px; }
+
     .secondary-actions {
       display: flex;
       justify-content: center;
       gap: 12px;
       margin-top: 16px;
-      flex-wrap: wrap;
     }
-    .btn-secondary {
+    .btn-ghost {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 10px 20px;
+      padding: 10px 18px;
       background: transparent;
-      color: var(--text-secondary);
+      color: var(--muted);
       border: 1px solid var(--border);
       border-radius: 10px;
       font-family: var(--font);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
       line-height: 1;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
-    .btn-secondary:hover {
+    .btn-ghost:hover {
       border-color: var(--primary);
       color: var(--primary);
+    }
+
+    /* ---- PERKS STRIP ---- */
+    .perks {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 40px;
+      padding: 24px 0;
+      border-top: 1px solid var(--border);
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+    .perk {
+      text-align: center;
+      max-width: 140px;
+    }
+    .perk-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 8px;
+      background: var(--surface);
+      border-radius: 10px;
+      color: var(--primary);
+    }
+    .perk-icon svg { width: 18px; height: 18px; }
+    .perk-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .perk-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
     }
 
     /* ---- FOOTER ---- */
     .footer {
       text-align: center;
-      margin-top: 40px;
-      padding: 20px 24px;
-      font-size: 12px;
+      margin-top: 32px;
+      padding: 16px 24px;
+      font-size: 11px;
       color: var(--muted);
-      border-top: 1px solid var(--border);
     }
     .footer a { color: var(--primary); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
 
     @media (max-width: 720px) {
-      .previews { gap: 24px; }
-      .preview-col { flex: 1 1 100%; max-width: 400px; }
-      .page { padding: 24px 16px 40px; }
-      .btn-wallet { width: 100%; }
+      .cards { gap: 20px; }
+      .card-col { flex: 1 1 100%; max-width: 400px; }
+      .hero { padding: 32px 0 28px; }
+      .hero-greeting { font-size: 26px; }
+      .cta-wallets { flex-direction: column; align-items: center; }
+      .btn-apple, .btn-google { width: 100%; max-width: 320px; justify-content: center; }
+      .perks { flex-wrap: wrap; gap: 20px; }
+      .perk { flex: 0 1 120px; }
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <div class="page-header">
-      <img src="${LOGO_DATA_URI}" alt="Emporium">
-      <div class="page-header-text">Member Pass Preview</div>
+    <div class="topbar">
+      <div class="topbar-brand">
+        <img src="${LOGO_DATA_URI}" alt="Emporium">
+        <div class="topbar-brand-text">Emporium <b>Grooming &amp; Supply</b></div>
+      </div>
+      <nav class="topbar-nav">
+        <a href="${baseUrl}/passes">All Passes</a>
+      </nav>
     </div>
 
-    <div class="previews">
-      <!-- APPLE WALLET -->
-      <div class="preview-col">
-        <div class="preview-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8.4 8.4 0 0 0-2.3.3 8.1 8.1 0 0 0-4.4 3.3C4 7.5 3.5 10 4.4 12.5s3 4.5 5.6 5.4c1 .3 2 .1 2 .1s1 .2 2-.1c2.6-.9 4.7-2.9 5.6-5.4s.4-5-1-6.9a8.1 8.1 0 0 0-4.3-3.3A8.4 8.4 0 0 0 12 2z"/><path d="M12 2c0 2-2 4-2 4"/></svg>
+    <div class="hero">
+      <div class="hero-scissors">${SCISSORS_SVG}</div>
+      <div class="hero-greeting">Welcome, ${firstName}</div>
+      <div class="hero-sub">Your <strong>${escapeHtml(m.tier)} Member</strong> pass is ready. Add it to your wallet to earn points on every visit.</div>
+    </div>
+
+    <div class="cards">
+      <!-- APPLE WALLET CARD -->
+      <div class="card-col">
+        <div class="card-platform">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8.4 8.4 0 0 0-2.3.3 8.1 8.1 0 0 0-4.4 3.3C4 7.5 3.5 10 4.4 12.5s3 4.5 5.6 5.4c1 .3 2 .1 2 .1s1 .2 2-.1c2.6-.9 4.7-2.9 5.6-5.4s.4-5-1-6.9a8.1 8.1 0 0 0-4.3-3.3A8.4 8.4 0 0 0 12 2z"/><path d="M12 2c0 2-2 4-2 4"/></svg>
           Apple Wallet
         </div>
         <div class="wallet-card">
-          <div class="apple-header">
-            <div class="card-logo">
-              <img src="${LOGO_DARK_DATA_URI}" alt="Emporium">
-              <div class="card-logo-text">Emporium<span>.</span></div>
+          <div class="card-stripe"></div>
+          <div class="card-body">
+            <div class="card-header">
+              <div class="card-logo">
+                <img src="${LOGO_DATA_URI}" alt="">
+                <div class="card-logo-name">Emporium<b>.</b></div>
+              </div>
+              <div class="tier-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/></svg>
+                ${escapeHtml(m.tier)}
+              </div>
             </div>
-            <div class="badge-tier">${escapeHtml(m.tier)}</div>
-          </div>
-          <div class="apple-member-label">Member</div>
-          <div class="apple-member-name">${escapeHtml(m.memberName)}</div>
-          <div class="apple-fields-row">
-            <div class="apple-field">
-              <div class="field-label">Tier</div>
-              <div class="field-value">${escapeHtml(m.tier)}</div>
+            <div class="member-label">Member</div>
+            <div class="member-name">${escapeHtml(m.memberName)}</div>
+            <div class="fields-row">
+              <div class="field">
+                <div class="field-label">Points</div>
+                <div class="field-value">${Number(m.points).toLocaleString()}</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Status</div>
+                <div class="field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
+              </div>
+              <div class="field">
+                <div class="field-label">Member ID</div>
+                <div class="field-value">${escapeHtml(m.memberId)}</div>
+              </div>
             </div>
-            <div class="apple-field">
-              <div class="field-label">Points</div>
-              <div class="field-value">${Number(m.points).toLocaleString()}</div>
+            <div class="aux-row">
+              <div class="aux-field">
+                <div class="aux-label">Member Since</div>
+                <div class="aux-value">${escapeHtml(m.memberSince)}</div>
+              </div>
+              <div class="aux-field">
+                <div class="aux-label">Next Reward In</div>
+                <div class="aux-value">${m.nextReward} pts</div>
+              </div>
             </div>
-            <div class="apple-field">
-              <div class="field-label">Status</div>
-              <div class="field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
+            <div class="progress-section">
+              <div class="progress-header">
+                <span class="progress-title">Rewards Progress</span>
+                <span class="progress-pct">${pct}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width: ${pct}%"></div>
+              </div>
+              <div class="progress-label">${Number(m.points).toLocaleString()} / ${Number(m.pointsMax).toLocaleString()} pts to next reward</div>
             </div>
-          </div>
-          <div class="apple-aux-row">
-            <div class="apple-aux-field">
-              <div class="aux-label">Member Since</div>
-              <div class="aux-value">${escapeHtml(m.memberSince)}</div>
+            <div class="card-qr">
+              <div class="qr-frame">
+                <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
+              </div>
+              <div class="qr-text">Show at checkout to earn &amp; redeem</div>
             </div>
-            <div class="apple-aux-field">
-              <div class="aux-label">Member ID</div>
-              <div class="aux-value">${escapeHtml(m.memberId)}</div>
-            </div>
-            <div class="apple-aux-field">
-              <div class="aux-label">Next Reward</div>
-              <div class="aux-value">${m.nextReward} pts</div>
-            </div>
-          </div>
-          <div class="progress-section">
-            <div class="progress-track">
-              <div class="progress-fill" style="width: ${pct}%"></div>
-            </div>
-            <div class="progress-label">${Number(m.points).toLocaleString()} / ${Number(m.pointsMax).toLocaleString()} pts to next reward</div>
-          </div>
-          <div class="card-qr">
-            <div class="qr-frame">
-              <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
-            </div>
-            <div class="qr-text">Scan to earn &amp; redeem</div>
-          </div>
-          <div class="card-stats">
-            <div class="stat">
-              <div class="stat-label">Last Visit</div>
-              <div class="stat-value">${escapeHtml(m.lastVisit)}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Total Visits</div>
-              <div class="stat-value">${m.totalVisits}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Saved</div>
-              <div class="stat-value">${escapeHtml(m.saved)}</div>
+            <div class="card-stats">
+              <div class="stat">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <div class="stat-value">${escapeHtml(m.lastVisit)}</div>
+                <div class="stat-label">Last Visit</div>
+              </div>
+              <div class="stat">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div>
+                <div class="stat-value">${m.totalVisits}</div>
+                <div class="stat-label">Visits</div>
+              </div>
+              <div class="stat">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <div class="stat-value">${escapeHtml(m.saved)}</div>
+                <div class="stat-label">Saved</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- GOOGLE WALLET -->
-      <div class="preview-col">
-        <div class="preview-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
+      <!-- GOOGLE WALLET CARD -->
+      <div class="card-col">
+        <div class="card-platform">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
           Google Wallet
         </div>
         <div class="wallet-card">
-          <div class="google-header">
-            <div class="card-logo">
-              <img src="${LOGO_DARK_DATA_URI}" alt="Emporium">
-              <div class="card-logo-text">Emporium<span>.</span></div>
+          <div class="card-stripe"></div>
+          <div class="card-body">
+            <div class="card-header">
+              <div class="card-logo">
+                <img src="${LOGO_DATA_URI}" alt="">
+                <div class="card-logo-name">Emporium<b>.</b></div>
+              </div>
+              <span style="font-size:12px;color:var(--card-muted);font-weight:500;">Loyalty Card</span>
             </div>
-            <div class="google-type">Loyalty Card</div>
-          </div>
-          <div class="google-member-name">${escapeHtml(m.memberName)}</div>
-          <div class="google-member-tier">${escapeHtml(m.tier)} Member</div>
-          <div class="google-row">
-            <span class="google-row-label">Points</span>
-            <span class="google-row-value">${Number(m.points).toLocaleString()}</span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Member Since</span>
-            <span class="google-row-value">${escapeHtml(m.memberSince)}</span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Member ID</span>
-            <span class="google-row-value">${escapeHtml(m.memberId)}</span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Status</span>
-            <span class="google-row-value">${escapeHtml(m.status)} <span class="status-dot"></span></span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Next Reward</span>
-            <span class="google-row-value">${m.nextReward} pts away</span>
-          </div>
-          <div class="google-progress">
-            <div class="progress-track">
-              <div class="progress-fill" style="width: ${pct}%"></div>
+            <div class="google-member-name">${escapeHtml(m.memberName)}</div>
+            <div class="google-member-tier">${escapeHtml(m.tier)} Member</div>
+            <div class="google-row">
+              <span class="google-row-label">Points</span>
+              <span class="google-row-value">${Number(m.points).toLocaleString()}</span>
             </div>
-            <div class="progress-label">${Number(m.points).toLocaleString()} / ${Number(m.pointsMax).toLocaleString()} pts</div>
-          </div>
-          <div class="card-qr">
-            <div class="qr-frame">
-              <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
+            <div class="google-row">
+              <span class="google-row-label">Member Since</span>
+              <span class="google-row-value">${escapeHtml(m.memberSince)}</span>
+            </div>
+            <div class="google-row">
+              <span class="google-row-label">Member ID</span>
+              <span class="google-row-value">${escapeHtml(m.memberId)}</span>
+            </div>
+            <div class="google-row">
+              <span class="google-row-label">Status</span>
+              <span class="google-row-value">${escapeHtml(m.status)} <span class="status-dot"></span></span>
+            </div>
+            <div class="google-row">
+              <span class="google-row-label">Next Reward</span>
+              <span class="google-row-value">${m.nextReward} pts away</span>
+            </div>
+            <div class="google-progress">
+              <div class="progress-header">
+                <span class="progress-title">Rewards Progress</span>
+                <span class="progress-pct">${pct}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width: ${pct}%"></div>
+              </div>
+              <div class="progress-label">${Number(m.points).toLocaleString()} / ${Number(m.pointsMax).toLocaleString()} pts</div>
+            </div>
+            <div class="card-qr">
+              <div class="qr-frame">
+                <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Single dominant CTA, then secondary actions (reduced cognitive load) -->
-    <div class="primary-action">
-      <a class="btn-wallet" href="${baseUrl}/pass/${pass.id}/download">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download Wallet Pass
-      </a>
+    <!-- CTA: platform-specific wallet buttons -->
+    <div class="cta-section">
+      <div class="cta-wallets">
+        <a class="btn-apple" href="${baseUrl}/pass/${pass.id}/download">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83"/><path d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          Add to Apple Wallet
+        </a>
+        <a class="btn-google" href="${baseUrl}/pass/${pass.id}/download">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
+          Add to Google Wallet
+        </a>
+      </div>
+      <div class="secondary-actions">
+        <button class="btn-ghost" onclick="navigator.share ? navigator.share({title:'Emporium Member Pass', url:window.location.href}) : navigator.clipboard.writeText(window.location.href).then(()=>{this.textContent='Copied!'})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+        <a class="btn-ghost" href="${baseUrl}/pass/${pass.id}/qr" target="_blank">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          QR Code
+        </a>
+      </div>
     </div>
-    <div class="secondary-actions">
-      <button class="btn-secondary" onclick="navigator.share ? navigator.share({title:'Emporium Member Pass', url:window.location.href}) : navigator.clipboard.writeText(window.location.href).then(()=>{this.innerHTML='<svg width=\\'14\\' height=\\'14\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg> Copied!'})">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Share Link
-      </button>
-      <a class="btn-secondary" href="${baseUrl}/pass/${pass.id}/qr" target="_blank">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        QR Code
-      </a>
+
+    <!-- Barbershop Perks -->
+    <div class="perks">
+      <div class="perk">
+        <div class="perk-icon">${SCISSORS_SVG}</div>
+        <div class="perk-title">Earn Points</div>
+        <div class="perk-desc">Every haircut &amp; product earns you rewards</div>
+      </div>
+      <div class="perk">
+        <div class="perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="perk-title">VIP Access</div>
+        <div class="perk-desc">Priority booking &amp; member-only deals</div>
+      </div>
+      <div class="perk">
+        <div class="perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/></svg></div>
+        <div class="perk-title">Unlock Rewards</div>
+        <div class="perk-desc">Free cuts, products &amp; exclusive perks</div>
+      </div>
     </div>
 
     <div class="footer">
@@ -619,18 +828,36 @@ function renderDownloadPage(pass, baseUrl) {
 }
 
 function renderListPage(passes, baseUrl) {
-  const passItems = passes.map(p => {
+  const passItems = passes.map((p, i) => {
     const m = (p.member && p.member.memberName) ? p.member : defaultMember();
     const isActive = String(m.status).toLowerCase() === 'active';
+    const tc = tierColor(m.tier);
+    const pct = Math.round((Number(m.points) / Number(m.pointsMax || 1500)) * 100);
     return `
-    <a href="${baseUrl}/pass/${p.id}" class="pass-row">
-      <div class="pass-avatar">${escapeHtml(m.memberName).charAt(0)}</div>
-      <div class="pass-info">
-        <div class="pass-name">${escapeHtml(m.memberName)}</div>
-        <div class="pass-meta">${escapeHtml(m.tier)} &middot; ${Number(m.points).toLocaleString()} pts &middot; ${escapeHtml(m.memberId)}</div>
-      </div>
-      <div class="pass-end">
-        <span class="badge-status ${isActive ? 'badge-active' : 'badge-inactive'}"><span class="badge-dot"></span> ${escapeHtml(m.status)}</span>
+    <a href="${baseUrl}/pass/${p.id}" class="pass-card" style="animation-delay: ${i * 0.05}s; --tier-color: ${tc.bg};">
+      <div class="pass-card-stripe" style="background: linear-gradient(90deg, var(--primary), ${tc.bg}, var(--accent));"></div>
+      <div class="pass-card-body">
+        <div class="pass-card-top">
+          <div class="pass-avatar" style="background: linear-gradient(135deg, ${tc.bg}, var(--primary));">${escapeHtml(m.memberName).charAt(0)}</div>
+          <div class="pass-card-info">
+            <div class="pass-card-name">${escapeHtml(m.memberName)}</div>
+            <div class="pass-card-meta">${escapeHtml(m.memberId)} &middot; Since ${escapeHtml(m.memberSince)}</div>
+          </div>
+          <div class="pass-card-right">
+            <span class="tier-pill" style="background: ${tc.bg}; color: ${tc.text};">${escapeHtml(m.tier)}</span>
+            <span class="status-pill ${isActive ? 'status-active' : 'status-inactive'}"><span class="status-pip"></span>${escapeHtml(m.status)}</span>
+          </div>
+        </div>
+        <div class="pass-card-bottom">
+          <div class="pass-card-points">
+            <span class="points-num">${Number(m.points).toLocaleString()}</span>
+            <span class="points-label">pts</span>
+          </div>
+          <div class="pass-card-progress">
+            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.bg};"></div></div>
+          </div>
+          <div class="pass-card-visits">${m.totalVisits || 0} visits</div>
+        </div>
       </div>
     </a>`;
   }).join('');
@@ -640,13 +867,13 @@ function renderListPage(passes, baseUrl) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wallet Passes - Emporium Grooming &amp; Supply</title>
+  <title>Members - Emporium Grooming &amp; Supply</title>
   <link rel="icon" href="${LOGO_DATA_URI}">
   <style>
     ${baseStyles()}
 
     .page {
-      max-width: 640px;
+      max-width: 720px;
       margin: 0 auto;
       padding: 0 24px 60px;
     }
@@ -656,35 +883,37 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 24px 0;
+      padding: 20px 0;
       border-bottom: 1px solid var(--border);
       margin-bottom: 32px;
     }
     .header-bar img { width: 36px; height: 36px; border-radius: 8px; }
     .header-brand {
       font-weight: 800;
-      font-size: 18px;
+      font-size: 17px;
       letter-spacing: -0.3px;
       flex: 1;
     }
-    .header-brand span { color: var(--primary); }
+    .header-brand b { color: var(--primary); font-weight: 800; }
 
     /* Title area */
-    .list-header {
+    .list-hero {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: space-between;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
+    .list-hero-left {}
     .list-title {
-      font-size: 28px;
+      font-family: var(--font-display);
+      font-size: 30px;
       font-weight: 800;
       letter-spacing: -0.5px;
+      margin-bottom: 4px;
     }
     .list-count {
       font-size: 13px;
       color: var(--muted);
-      margin-top: 2px;
     }
     .btn-new-pass {
       display: inline-flex;
@@ -702,34 +931,39 @@ function renderListPage(passes, baseUrl) {
       text-decoration: none;
       line-height: 1;
       transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,191,166,0.2);
     }
-    .btn-new-pass:hover { background: var(--primary-hover); }
+    .btn-new-pass:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,166,0.3); }
 
-    /* Pass list */
-    .pass-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 16px 20px;
+    /* Pass cards */
+    .pass-card {
+      display: block;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-bottom: 8px;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 10px;
       text-decoration: none;
       color: var(--text);
       transition: all 0.15s ease;
+      animation: fadeUp 0.4s ease both;
     }
-    .pass-row:hover {
-      background: #1E2130;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 1px var(--primary);
-      transform: translateY(-1px);
+    .pass-card:hover {
+      border-color: var(--tier-color, var(--primary));
+      box-shadow: 0 0 0 1px var(--tier-color, var(--primary)), 0 4px 20px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+    .pass-card-stripe { height: 3px; }
+    .pass-card-body { padding: 16px 20px; }
+    .pass-card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
     .pass-avatar {
       width: 44px;
       height: 44px;
       border-radius: 10px;
-      background: linear-gradient(135deg, var(--primary), #009E8B);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -738,100 +972,151 @@ function renderListPage(passes, baseUrl) {
       color: #fff;
       flex-shrink: 0;
     }
-    .pass-info { flex: 1; min-width: 0; }
-    .pass-name {
+    .pass-card-info { flex: 1; min-width: 0; }
+    .pass-card-name {
       font-weight: 700;
       font-size: 15px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .pass-meta {
-      font-size: 13px;
+    .pass-card-meta {
+      font-size: 12px;
       color: var(--muted);
-      margin-top: 2px;
+      margin-top: 1px;
     }
-    .pass-end { flex-shrink: 0; }
-    .badge-status {
+    .pass-card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .tier-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 5px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 100px;
-      font-size: 12px;
+      gap: 5px;
+      font-size: 11px;
       font-weight: 600;
     }
-    .badge-active {
-      background: rgba(52,211,153,0.12);
-      color: #34D399;
-    }
-    .badge-inactive {
-      background: rgba(232,71,95,0.10);
-      color: var(--accent);
-    }
-    .badge-dot {
+    .status-active { color: var(--green-dot); }
+    .status-inactive { color: var(--accent); }
+    .status-pip {
       width: 6px; height: 6px; border-radius: 50%;
       background: currentColor;
+    }
+
+    .pass-card-bottom {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .pass-card-points {
+      flex-shrink: 0;
+    }
+    .points-num {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .points-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+    .pass-card-progress {
+      flex: 1;
+    }
+    .mini-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .mini-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .pass-card-visits {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
     }
 
     /* Empty state */
     .empty-state {
       text-align: center;
-      padding: 64px 24px;
+      padding: 80px 24px;
+      animation: fadeUp 0.5s ease both;
     }
     .empty-icon {
-      width: 72px;
-      height: 72px;
+      width: 80px;
+      height: 80px;
       margin: 0 auto 24px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      color: var(--muted);
+      border-radius: 24px;
+      color: var(--primary);
     }
-    .empty-icon svg { width: 32px; height: 32px; }
+    .empty-icon svg { width: 36px; height: 36px; }
     .empty-title {
-      font-size: 20px;
-      font-weight: 700;
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
       margin-bottom: 8px;
     }
     .empty-desc {
       color: var(--muted);
       font-size: 15px;
-      max-width: 320px;
-      margin: 0 auto 28px;
+      max-width: 340px;
+      margin: 0 auto 32px;
       line-height: 1.6;
     }
     .btn-create {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 14px 32px;
+      padding: 14px 36px;
       background: var(--primary);
       color: #fff;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-family: var(--font);
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
-      box-shadow: 0 2px 12px rgba(0,191,166,0.2);
+      box-shadow: 0 2px 12px rgba(0,191,166,0.25);
     }
-    .btn-create:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,191,166,0.3); }
+    .btn-create:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 24px rgba(0,191,166,0.35); }
 
     .footer {
       text-align: center;
       margin-top: 40px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
     }
 
     @media (max-width: 480px) {
-      .pass-end .badge-status { display: none; }
-      .list-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .pass-card-right { display: none; }
+      .list-hero { flex-direction: column; align-items: flex-start; gap: 16px; }
     }
   </style>
 </head>
@@ -839,31 +1124,28 @@ function renderListPage(passes, baseUrl) {
   <div class="page">
     <div class="header-bar">
       <img src="${LOGO_DATA_URI}" alt="Emporium">
-      <div class="header-brand">Emporium <span>Grooming</span></div>
+      <div class="header-brand">Emporium <b>Grooming &amp; Supply</b></div>
     </div>
 
     ${passes.length > 0 ? `
-    <div class="list-header">
-      <div>
-        <div class="list-title">Wallet Passes</div>
-        <div class="list-count">${passes.length} member pass${passes.length !== 1 ? 'es' : ''}</div>
+    <div class="list-hero">
+      <div class="list-hero-left">
+        <div class="list-title">Members</div>
+        <div class="list-count">${passes.length} active pass${passes.length !== 1 ? 'es' : ''}</div>
       </div>
       <button class="btn-new-pass" onclick="fetch('${baseUrl}/pass/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).then(r=>r.json()).then(d=>{if(d.id)window.location.href='${baseUrl}/pass/'+d.id;else location.reload()})">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        New Pass
+        New Member
       </button>
     </div>
     ${passItems}
     ` : `
-    <div class="list-title" style="margin-bottom: 0;">Wallet Passes</div>
     <div class="empty-state">
-      <div class="empty-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
-      </div>
-      <div class="empty-title">No passes yet</div>
-      <p class="empty-desc">Create your first membership pass to start distributing to customers via link, QR code, or email.</p>
+      <div class="empty-icon">${SCISSORS_SVG}</div>
+      <div class="empty-title">Ready to reward your clients</div>
+      <p class="empty-desc">Create your first membership pass and share it with clients. They'll earn points on every haircut, product, and service.</p>
       <button class="btn-create" onclick="fetch('${baseUrl}/pass/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).then(r=>r.json()).then(d=>{if(d.id)window.location.href='${baseUrl}/pass/'+d.id;else location.reload()})">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        ${SCISSORS_SVG.replace('width="24"', 'width="16"').replace('height="24"', 'height="16"')}
         Create First Pass
       </button>
     </div>
