@@ -248,7 +248,7 @@ function renderDownloadPage(pass, baseUrl) {
     }
     .card-platform svg { width: 13px; height: 13px; opacity: 0.5; }
 
-    /* ---- WHITE CARD ---- */
+    /* ---- CARD BASE ---- */
     .wallet-card {
       background: var(--card-bg);
       border-radius: 20px;
@@ -265,9 +265,60 @@ function renderDownloadPage(pass, baseUrl) {
     /* Barbershop stripe at top of each card */
     .card-stripe {
       height: 4px;
-      background: ${tc.isVip ? tc.gradient : `linear-gradient(90deg, var(--primary), var(--accent))`};
-      ${tc.isVip ? 'background-size: 200% auto; animation: shimmerGold 3s linear infinite;' : ''}
+      background: ${tc.isVip ? 'transparent' : `linear-gradient(90deg, var(--primary), var(--accent))`};
     }
+
+    ${tc.isVip ? `
+    /* ---- VIP GOLD CARD OVERRIDES ---- */
+    .wallet-card {
+      background: linear-gradient(145deg, #C5A55A 0%, #E8D5A3 25%, #D4B868 50%, #E8D5A3 75%, #C5A55A 100%);
+      background-size: 300% 300%;
+      animation: goldShift 6s ease infinite;
+      box-shadow: 0 8px 40px rgba(197,165,90,0.25), 0 2px 8px rgba(0,0,0,0.1);
+      color: #1a1a1a;
+    }
+    .wallet-card:hover {
+      box-shadow: 0 16px 56px rgba(197,165,90,0.35), 0 4px 12px rgba(0,0,0,0.15);
+    }
+    @keyframes goldShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .card-stripe { height: 0; }
+    .card-logo-name, .card-logo-name b { color: #1a1a1a; }
+    .member-label { color: rgba(0,0,0,0.5); }
+    .member-name { color: #1a1a1a; }
+    .field-label { color: rgba(0,0,0,0.5); }
+    .field-value { color: #1a1a1a; }
+    .aux-label { color: rgba(0,0,0,0.45); }
+    .aux-value { color: #1a1a1a; }
+    .progress-title { color: rgba(0,0,0,0.45); }
+    .progress-pct { color: #1a1a1a; }
+    .progress-track { background: rgba(0,0,0,0.12); }
+    .progress-fill { background: linear-gradient(90deg, #1a1a1a, #3a3a3a); }
+    .progress-label { color: rgba(0,0,0,0.45); }
+    .card-qr { border-top-color: rgba(0,0,0,0.1); }
+    .qr-frame { border-color: rgba(0,0,0,0.1); background: rgba(255,255,255,0.9); }
+    .qr-text { color: rgba(0,0,0,0.45); }
+    .card-stats { border-top-color: rgba(0,0,0,0.1); }
+    .stat-icon { color: rgba(0,0,0,0.4); }
+    .stat-value { color: #1a1a1a; }
+    .stat-label { color: rgba(0,0,0,0.45); }
+    .status-dot { background: #1a1a1a; }
+    .tier-badge {
+      background: #1a1a1a;
+      color: #E8D5A3;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      animation: none;
+    }
+    /* Google card VIP overrides */
+    .google-member-name { color: #1a1a1a; }
+    .google-member-tier { color: rgba(0,0,0,0.5); }
+    .google-row { border-top-color: rgba(0,0,0,0.1); }
+    .google-row-label { color: rgba(0,0,0,0.45); }
+    .google-row-value { color: #1a1a1a; }
+    .google-progress { border-top-color: rgba(0,0,0,0.1); }
+    ` : ''}
 
     .card-body { padding: 24px 28px 28px; }
 
@@ -875,17 +926,17 @@ function renderListPage(passes, baseUrl) {
     const tc = tierColor(m.tier);
     const pct = Math.round((Number(m.points) / Number(m.pointsMax || 1500)) * 100);
     return `
-    <a href="${baseUrl}/pass/${p.id}" class="pass-card" style="animation-delay: ${i * 0.05}s; --tier-color: ${tc.bg};">
-      <div class="pass-card-stripe" style="background: linear-gradient(90deg, var(--primary), ${tc.bg}, var(--accent));"></div>
+    <a href="${baseUrl}/pass/${p.id}" class="pass-card${tc.isVip ? ' pass-card-vip' : ''}" style="animation-delay: ${i * 0.05}s; --tier-color: ${tc.bg};">
+      <div class="pass-card-stripe" style="background: ${tc.isVip ? 'transparent' : `linear-gradient(90deg, var(--primary), var(--accent))`};"></div>
       <div class="pass-card-body">
         <div class="pass-card-top">
-          <div class="pass-avatar" style="background: linear-gradient(135deg, ${tc.bg}, var(--primary));">${escapeHtml(m.memberName).charAt(0)}</div>
+          <div class="pass-avatar" style="background: ${tc.isVip ? '#1a1a1a' : `linear-gradient(135deg, ${tc.bg}, var(--primary))`};">${escapeHtml(m.memberName).charAt(0)}</div>
           <div class="pass-card-info">
             <div class="pass-card-name">${escapeHtml(m.memberName)}</div>
             <div class="pass-card-meta">${escapeHtml(m.memberId)} &middot; Since ${escapeHtml(m.memberSince)}</div>
           </div>
           <div class="pass-card-right">
-            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.bg}; color: ${tc.text};">${escapeHtml(m.tier)}</span>
+            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.isVip ? '#1a1a1a' : tc.bg}; color: ${tc.isVip ? '#E8D5A3' : tc.text};">${escapeHtml(m.tier)}</span>
             <span class="status-pill ${isActive ? 'status-active' : 'status-inactive'}"><span class="status-pip"></span>${escapeHtml(m.status)}</span>
           </div>
         </div>
@@ -895,7 +946,7 @@ function renderListPage(passes, baseUrl) {
             <span class="points-label">pts</span>
           </div>
           <div class="pass-card-progress">
-            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.bg};"></div></div>
+            <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${tc.isVip ? '#1a1a1a' : tc.bg};"></div></div>
           </div>
           <div class="pass-card-visits">${m.totalVisits || 0} visits</div>
         </div>
@@ -994,6 +1045,30 @@ function renderListPage(passes, baseUrl) {
       border-color: var(--tier-color, var(--primary));
       box-shadow: 0 0 0 1px var(--tier-color, var(--primary)), 0 4px 20px rgba(0,0,0,0.15);
       transform: translateY(-2px);
+    }
+    /* VIP gold card in list */
+    .pass-card-vip {
+      background: linear-gradient(145deg, #C5A55A 0%, #E8D5A3 25%, #D4B868 50%, #E8D5A3 75%, #C5A55A 100%);
+      background-size: 300% 300%;
+      animation: fadeUp 0.4s ease both, goldListShift 6s ease infinite;
+      border-color: #C5A55A;
+      color: #1a1a1a;
+    }
+    .pass-card-vip:hover {
+      border-color: #9A7B2F;
+      box-shadow: 0 0 0 1px #9A7B2F, 0 8px 32px rgba(197,165,90,0.3);
+    }
+    .pass-card-vip .pass-card-name { color: #1a1a1a; }
+    .pass-card-vip .pass-card-meta { color: rgba(0,0,0,0.5); }
+    .pass-card-vip .pass-card-bottom { border-top-color: rgba(0,0,0,0.1); }
+    .pass-card-vip .points-num { color: #1a1a1a; }
+    .pass-card-vip .points-label { color: rgba(0,0,0,0.5); }
+    .pass-card-vip .mini-track { background: rgba(0,0,0,0.1); }
+    .pass-card-vip .pass-card-visits { color: rgba(0,0,0,0.5); }
+    .pass-card-vip .status-active { color: #1a1a1a; }
+    @keyframes goldListShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
     .pass-card-stripe { height: 3px; }
     .pass-card-body { padding: 16px 20px; }
