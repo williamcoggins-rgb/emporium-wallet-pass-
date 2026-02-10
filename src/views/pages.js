@@ -3,14 +3,17 @@
  *
  * Design tokens (white cards, teal + red accents):
  *   Primary:    #00BFA6 (teal)
- *   Accent:     #E8475F (red — progress, tier badges)
+ *   Accent:     #E8475F (red — progress, badges)
  *   Page bg:    #0F1117
  *   Surface:    #1A1D27
  *   Card bg:    #FFFFFF
  *   Card text:  #1A1A2E
- *   Gold tier:  #D4A853
- *   Silver tier:#94A3B8
- *   Platinum:   #A78BFA
+ *
+ * Tiers:
+ *   Regular:    teal (#00BFA6) — standard member
+ *   VIP:        old gold metallic (#C5A55A / #E8D5A3 shimmer) — monthly VIP
+ *
+ * Font: Oswald (Nike-style bold condensed sans-serif)
  */
 
 // Scissors icon SVG for barbershop branding
@@ -24,15 +27,26 @@ const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toStrin
 
 function tierColor(tier) {
   const t = String(tier).toLowerCase();
-  if (t === 'platinum') return { bg: '#A78BFA', text: '#fff', glow: 'rgba(167,139,250,0.25)' };
-  if (t === 'gold') return { bg: '#D4A853', text: '#fff', glow: 'rgba(212,168,83,0.25)' };
-  if (t === 'silver') return { bg: '#94A3B8', text: '#fff', glow: 'rgba(148,163,184,0.25)' };
-  return { bg: '#00BFA6', text: '#fff', glow: 'rgba(0,191,166,0.25)' };
+  if (t === 'vip') return {
+    bg: '#C5A55A',
+    text: '#fff',
+    glow: 'rgba(197,165,90,0.30)',
+    gradient: 'linear-gradient(135deg, #9A7B2F 0%, #C5A55A 30%, #E8D5A3 50%, #C5A55A 70%, #9A7B2F 100%)',
+    isVip: true,
+  };
+  // Regular tier
+  return {
+    bg: '#00BFA6',
+    text: '#fff',
+    glow: 'rgba(0,191,166,0.25)',
+    gradient: 'linear-gradient(135deg, #00BFA6, #009E8B)',
+    isVip: false,
+  };
 }
 
 function baseStyles() {
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap');
 
     :root {
       --bg: #0F1117;
@@ -47,7 +61,7 @@ function baseStyles() {
       --accent-bg: rgba(232,71,95,0.10);
       --green-dot: #34D399;
       --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-display: 'Playfair Display', Georgia, serif;
+      --font-display: 'Oswald', 'Impact', 'Arial Narrow', sans-serif;
 
       --card-bg: #FFFFFF;
       --card-text: #1A1A2E;
@@ -88,7 +102,7 @@ function baseStyles() {
 function defaultMember() {
   return {
     memberName: 'Jane Doe',
-    tier: 'Gold',
+    tier: 'Regular',
     points: 1250,
     pointsMax: 1500,
     status: 'Active',
@@ -179,9 +193,10 @@ function renderDownloadPage(pass, baseUrl) {
     .hero-scissors svg { width: 28px; height: 28px; }
     .hero-greeting {
       font-family: var(--font-display);
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       margin-bottom: 8px;
       color: var(--text);
     }
@@ -192,6 +207,20 @@ function renderDownloadPage(pass, baseUrl) {
       margin: 0 auto;
     }
     .hero-sub strong { color: ${tc.bg}; font-weight: 700; }
+    ${tc.isVip ? `
+    .hero-sub strong {
+      background: linear-gradient(90deg, #9A7B2F, #E8D5A3, #C5A55A, #E8D5A3, #9A7B2F);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerGold 3s linear infinite;
+    }
+    @keyframes shimmerGold {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    ` : ''}
 
     /* ---- CARD GRID ---- */
     .cards {
@@ -236,7 +265,8 @@ function renderDownloadPage(pass, baseUrl) {
     /* Barbershop stripe at top of each card */
     .card-stripe {
       height: 4px;
-      background: linear-gradient(90deg, var(--primary), ${tc.bg}, var(--accent));
+      background: ${tc.isVip ? tc.gradient : `linear-gradient(90deg, var(--primary), var(--accent))`};
+      ${tc.isVip ? 'background-size: 200% auto; animation: shimmerGold 3s linear infinite;' : ''}
     }
 
     .card-body { padding: 24px 28px 28px; }
@@ -266,17 +296,25 @@ function renderDownloadPage(pass, baseUrl) {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: ${tc.bg};
-      color: ${tc.text};
-      font-size: 10px;
-      font-weight: 800;
-      padding: 5px 12px;
+      background: ${tc.isVip ? tc.gradient : tc.bg};
+      ${tc.isVip ? 'background-size: 200% auto; animation: shimmerGold 3s linear infinite;' : ''}
+      color: ${tc.isVip ? '#1a1a1a' : tc.text};
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 14px;
       border-radius: 6px;
-      letter-spacing: 0.8px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       box-shadow: 0 2px 8px ${tc.glow};
     }
     .tier-badge svg { width: 11px; height: 11px; }
+    ${tc.isVip ? `
+    @keyframes shimmerGold {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    ` : ''}
 
     /* Member identity */
     .member-label {
@@ -289,9 +327,10 @@ function renderDownloadPage(pass, baseUrl) {
     }
     .member-name {
       font-family: var(--font-display);
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       color: var(--card-text);
       margin-bottom: 20px;
     }
@@ -447,18 +486,20 @@ function renderDownloadPage(pass, baseUrl) {
     /* ---- GOOGLE CARD SPECIFICS ---- */
     .google-member-name {
       font-family: var(--font-display);
-      font-size: 24px;
-      font-weight: 800;
+      font-size: 26px;
+      font-weight: 700;
       color: var(--card-text);
-      letter-spacing: -0.3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       margin-bottom: 2px;
     }
     .google-member-tier {
-      font-size: 13px;
-      font-weight: 700;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 500;
       color: ${tc.bg};
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 2px;
       margin-bottom: 16px;
     }
     .google-row {
@@ -632,7 +673,7 @@ function renderDownloadPage(pass, baseUrl) {
     <div class="hero">
       <div class="hero-scissors">${SCISSORS_SVG}</div>
       <div class="hero-greeting">Welcome, ${firstName}</div>
-      <div class="hero-sub">Your <strong>${escapeHtml(m.tier)} Member</strong> pass is ready. Add it to your wallet to earn points on every visit.</div>
+      <div class="hero-sub">Your <strong>${tc.isVip ? 'VIP' : 'Member'}</strong> pass is ready. Add it to your wallet to earn points on every visit.</div>
     </div>
 
     <div class="cards">
@@ -844,7 +885,7 @@ function renderListPage(passes, baseUrl) {
             <div class="pass-card-meta">${escapeHtml(m.memberId)} &middot; Since ${escapeHtml(m.memberSince)}</div>
           </div>
           <div class="pass-card-right">
-            <span class="tier-pill" style="background: ${tc.bg}; color: ${tc.text};">${escapeHtml(m.tier)}</span>
+            <span class="tier-pill${tc.isVip ? ' tier-pill-vip' : ''}" style="background: ${tc.bg}; color: ${tc.text};">${escapeHtml(m.tier)}</span>
             <span class="status-pill ${isActive ? 'status-active' : 'status-inactive'}"><span class="status-pip"></span>${escapeHtml(m.status)}</span>
           </div>
         </div>
@@ -906,9 +947,10 @@ function renderListPage(passes, baseUrl) {
     .list-hero-left {}
     .list-title {
       font-family: var(--font-display);
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       margin-bottom: 4px;
     }
     .list-count {
@@ -993,12 +1035,23 @@ function renderListPage(passes, baseUrl) {
       flex-shrink: 0;
     }
     .tier-pill {
+      font-family: var(--font-display);
       font-size: 10px;
-      font-weight: 800;
-      padding: 3px 10px;
+      font-weight: 600;
+      padding: 4px 10px;
       border-radius: 5px;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
+    }
+    .tier-pill-vip {
+      background-image: linear-gradient(135deg, #9A7B2F 0%, #C5A55A 30%, #E8D5A3 50%, #C5A55A 70%, #9A7B2F 100%) !important;
+      background-size: 200% auto;
+      color: #1a1a1a !important;
+      animation: shimmerGoldList 3s linear infinite;
+    }
+    @keyframes shimmerGoldList {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
     }
     .status-pill {
       display: inline-flex;
@@ -1078,8 +1131,10 @@ function renderListPage(passes, baseUrl) {
     .empty-icon svg { width: 36px; height: 36px; }
     .empty-title {
       font-family: var(--font-display);
-      font-size: 24px;
-      font-weight: 800;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
       margin-bottom: 8px;
     }
     .empty-desc {

@@ -36,7 +36,7 @@ async function generatePass(options = {}) {
     passTypeIdentifier = 'pass.com.emporium.grooming',
     // Membership fields
     memberName = 'Jane Doe',
-    tier = 'Gold',
+    tier = 'Regular',
     points = 1250,
     pointsMax = 1500,
     status = 'Active',
