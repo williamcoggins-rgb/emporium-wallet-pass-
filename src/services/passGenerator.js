@@ -34,24 +34,16 @@ async function generatePass(options = {}) {
   const {
     teamIdentifier = 'EMPORIUM01',
     passTypeIdentifier = 'pass.com.emporium.grooming',
-    // Membership fields
     memberName = 'Jane Doe',
-    tier = 'Gold',
-    points = 1250,
-    pointsMax = 1500,
     status = 'Active',
     memberSince = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
     memberId = generateMemberId(),
-    lastVisit = 'Today',
-    totalVisits = 24,
-    saved = '$186',
     barcodeMessage = null,
   } = options;
 
   const serialNumber = uuidv4();
   const barcodeMsg = barcodeMessage || `${config.baseUrl}/verify/${serialNumber}`;
   const description = `Emporium Grooming - ${memberName}`;
-  const nextReward = pointsMax - points;
 
   // Build pass.json from template
   const templateSrc = fs.readFileSync(path.join(TEMPLATE_DIR, 'pass.json'), 'utf8');
@@ -61,12 +53,9 @@ async function generatePass(options = {}) {
     passTypeIdentifier,
     description,
     memberName,
-    tier,
-    points: String(points),
     status,
     memberSince,
     memberId,
-    nextReward: String(nextReward),
     barcodeMessage: barcodeMsg,
   });
 
@@ -114,7 +103,7 @@ async function generatePass(options = {}) {
   }, {
     label: options.label || description,
     // Store membership data alongside pass metadata
-    member: { memberName, tier, points, pointsMax, status, memberSince, memberId, nextReward, lastVisit, totalVisits, saved },
+    member: { memberName, status, memberSince, memberId },
   });
 
   return {

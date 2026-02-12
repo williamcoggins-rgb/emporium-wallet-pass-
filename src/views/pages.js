@@ -3,12 +3,13 @@
  *
  * Design tokens:
  *   Primary:    #00BFA6 (teal)
- *   Accent:     #E8475F (red for progress bar / badges)
- *   Dark bg:    #0F1117
- *   Surface:    #1A1D27
- *   Card bg:    #1E2130
- *   Text:       #F0F0F5
- *   Muted:      #8B8FA3
+ *   Accent:     #E8475F (coral)
+ *   Card bg:    #FFFFFF (white)
+ *   Page bg:    #0F1117 (dark)
+ *   Text dark:  #1A1A1A
+ *   Muted:      #999999
+ *
+ * Font: Anton (Nike Air Max bold condensed style)
  */
 
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
@@ -19,28 +20,27 @@ const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toStrin
 
 function baseStyles() {
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap');
 
     :root {
       --bg: #0F1117;
-      --surface: #1A1D27;
-      --card: #1E2130;
-      --card-google: #FFFFFF;
-      --border: #2E3345;
+      --card: #FFFFFF;
+      --border: #E5E7EB;
       --text: #F0F0F5;
-      --text-secondary: #C0C4D6;
-      --muted: #6B7085;
+      --text-dark: #1A1A1A;
+      --text-secondary: #666666;
+      --muted: #999999;
       --primary: #00BFA6;
       --accent: #E8475F;
-      --accent-bg: rgba(232,71,95,0.15);
       --green-dot: #34D399;
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-display: 'Anton', 'Impact', 'Arial Black', sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { font-size: 16px; -webkit-font-smoothing: antialiased; }
     body {
-      font-family: var(--font);
+      font-family: var(--font-body);
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -56,29 +56,21 @@ function baseStyles() {
 function defaultMember() {
   return {
     memberName: 'Jane Doe',
-    tier: 'Gold',
-    points: 1250,
-    pointsMax: 1500,
     status: 'Active',
     memberSince: 'Feb 2026',
     memberId: 'EG-00482',
-    nextReward: 250,
-    lastVisit: 'Today',
-    totalVisits: 24,
-    saved: '$186',
   };
 }
 
 function renderDownloadPage(pass, baseUrl) {
   const m = (pass.member && pass.member.memberName) ? pass.member : defaultMember();
-  const pct = Math.round((m.points / m.pointsMax) * 100);
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Emporium Grooming &amp; Supply - Wallet Pass Design Preview</title>
+  <title>Emporium Grooming &amp; Supply - Wallet Pass</title>
   <link rel="icon" href="${LOGO_DATA_URI}">
   <style>
     ${baseStyles()}
@@ -86,10 +78,10 @@ function renderDownloadPage(pass, baseUrl) {
     .page { padding: 40px 24px 60px; }
     .page-title {
       text-align: center;
+      font-family: var(--font-display);
+      font-size: 14px;
+      letter-spacing: 4px;
       text-transform: uppercase;
-      letter-spacing: 3px;
-      font-size: 13px;
-      font-weight: 600;
       color: var(--muted);
       margin-bottom: 48px;
     }
@@ -108,84 +100,79 @@ function renderDownloadPage(pass, baseUrl) {
     }
     .preview-label {
       text-align: center;
+      font-family: var(--font-display);
+      letter-spacing: 3px;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 12px;
       color: var(--muted);
       margin-bottom: 20px;
     }
 
-    /* ---- APPLE WALLET CARD ---- */
-    .apple-card {
+    /* ---- WHITE CARD (shared) ---- */
+    .wallet-card {
       background: var(--card);
-      border-radius: 16px;
-      padding: 28px 28px 24px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 32px 28px 28px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+      color: var(--text-dark);
     }
-    .apple-header {
+
+    .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
-    .apple-logo {
+    .card-logo {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .apple-logo img { width: 32px; height: 32px; border-radius: 7px; }
-    .apple-logo-text {
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -0.3px;
-    }
-    .apple-logo-text span { color: var(--primary); }
-    .badge-member {
-      background: var(--accent);
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 5px 14px;
-      border-radius: 6px;
-      letter-spacing: 0.5px;
-    }
-
-    .apple-member-label {
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 700;
+    .card-logo img { width: 34px; height: 34px; border-radius: 8px; }
+    .card-logo-text {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      color: var(--text-dark);
     }
-    .apple-member-name {
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 28px;
+    .card-logo-text span { color: var(--primary); }
+    .card-type {
+      font-family: var(--font-display);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
-    .apple-fields-row {
+    .card-name {
+      font-family: var(--font-display);
+      font-size: 42px;
+      line-height: 1;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dark);
+      margin-bottom: 32px;
+    }
+
+    .card-fields {
       display: flex;
       gap: 0;
-      margin-bottom: 24px;
+      margin-bottom: 8px;
     }
-    .apple-field {
-      flex: 1;
-    }
-    .apple-field-label {
+    .card-field { flex: 1; }
+    .card-field-label {
+      font-family: var(--font-display);
       font-size: 10px;
-      font-weight: 700;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--primary);
+      color: var(--muted);
       margin-bottom: 4px;
     }
-    .apple-field-value {
-      font-size: 18px;
+    .card-field-value {
+      font-size: 15px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--text-dark);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -198,200 +185,37 @@ function renderDownloadPage(pass, baseUrl) {
       background: var(--green-dot);
     }
 
-    .apple-aux-row {
-      display: flex;
-      gap: 0;
-      margin-bottom: 16px;
-    }
-    .apple-aux-field { flex: 1; }
-    .apple-aux-label {
-      font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      margin-bottom: 3px;
-    }
-    .apple-aux-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .progress-bar-wrap {
-      margin-bottom: 6px;
-    }
-    .progress-bar-track {
-      height: 4px;
+    .card-divider {
+      height: 1px;
       background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: width 0.4s ease;
-    }
-    .progress-label {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 6px;
+      margin: 20px 0;
     }
 
-    .apple-qr {
+    .card-qr {
       text-align: center;
-      margin-top: 28px;
+      padding-top: 8px;
     }
-    .apple-qr-frame {
+    .card-qr-frame {
       display: inline-block;
-      background: white;
-      padding: 14px;
-      border-radius: 12px;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
     }
-    .apple-qr-frame img {
+    .card-qr-frame img {
       display: block;
       width: 140px;
       height: 140px;
     }
-    .apple-qr-text {
+    .card-qr-text {
       margin-top: 10px;
       font-size: 12px;
       color: var(--muted);
     }
 
-    .apple-stats {
-      display: flex;
-      margin-top: 24px;
-      border-top: 1px solid var(--border);
-      padding-top: 20px;
-    }
-    .apple-stat {
-      flex: 1;
-      text-align: center;
-    }
-    .apple-stat-label {
-      font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-    .apple-stat-value {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    /* ---- GOOGLE WALLET CARD ---- */
-    .google-card {
-      background: var(--card-google);
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-      color: #1a1a1a;
-    }
-    .google-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .google-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .google-logo img { width: 32px; height: 32px; border-radius: 7px; }
-    .google-logo-text {
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -0.3px;
-      color: #1a1a1a;
-    }
-    .google-logo-text span { color: var(--primary); }
-    .google-type {
-      font-size: 13px;
-      color: #999;
-      font-weight: 500;
-    }
-
-    .google-member-name {
-      font-size: 26px;
-      font-weight: 800;
-      color: #1a1a1a;
-      letter-spacing: -0.5px;
-      margin-bottom: 2px;
-    }
-    .google-member-tier {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      margin-bottom: 24px;
-    }
-
-    .google-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 0;
-      border-top: 1px solid #eee;
-    }
-    .google-row-label {
-      font-size: 14px;
-      color: #777;
-      font-weight: 500;
-    }
-    .google-row-value {
-      font-size: 14px;
-      font-weight: 700;
-      color: #1a1a1a;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .google-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--green-dot);
-    }
-
-    .google-progress {
-      padding: 14px 0;
-      border-top: 1px solid #eee;
-    }
-    .google-progress-track {
-      height: 4px;
-      background: #e5e5e5;
-      border-radius: 2px;
-      overflow: hidden;
-      margin-bottom: 6px;
-    }
-    .google-progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-    }
-    .google-progress-label {
-      font-size: 12px;
-      color: #999;
-    }
-
-    .google-qr {
-      text-align: center;
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
-    .google-qr-frame {
-      display: inline-block;
-      padding: 8px;
-    }
-    .google-qr-frame img {
-      display: block;
-      width: 140px;
-      height: 140px;
-    }
+    /* Apple-specific accent stripe */
+    .apple-card { border-top: 4px solid var(--primary); }
+    /* Google-specific accent stripe */
+    .google-card { border-top: 4px solid #4285F4; }
 
     /* ---- ACTIONS BAR ---- */
     .actions-bar {
@@ -412,9 +236,10 @@ function renderDownloadPage(pass, baseUrl) {
       padding: 14px 28px;
       border: none;
       border-radius: 12px;
-      font-family: var(--font);
+      font-family: var(--font-display);
       font-size: 14px;
-      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       cursor: pointer;
       transition: all 0.2s;
       text-decoration: none;
@@ -433,7 +258,7 @@ function renderDownloadPage(pass, baseUrl) {
     .btn-outline {
       background: transparent;
       color: var(--text);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,255,255,0.15);
     }
     .btn-outline:hover {
       border-color: var(--primary);
@@ -446,7 +271,7 @@ function renderDownloadPage(pass, baseUrl) {
       padding: 24px;
       font-size: 12px;
       color: var(--muted);
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
 
     @media (max-width: 720px) {
@@ -454,80 +279,47 @@ function renderDownloadPage(pass, baseUrl) {
       .preview-col { flex: 1 1 100%; max-width: 400px; }
       .page { padding: 24px 16px 40px; }
       .page-title { margin-bottom: 32px; }
+      .card-name { font-size: 34px; }
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <div class="page-title">Emporium &mdash; Wallet Pass Design Preview</div>
+    <div class="page-title">Emporium &mdash; Wallet Pass</div>
 
     <div class="previews">
       <!-- APPLE WALLET -->
       <div class="preview-col">
         <div class="preview-label">Apple Wallet</div>
-        <div class="apple-card">
-          <div class="apple-header">
-            <div class="apple-logo">
+        <div class="wallet-card apple-card">
+          <div class="card-header">
+            <div class="card-logo">
               <img src="${LOGO_DATA_URI}" alt="Emporium">
-              <div class="apple-logo-text">Emporium<span>.</span></div>
+              <div class="card-logo-text">Emporium<span>.</span></div>
             </div>
-            <div class="badge-member">MEMBER</div>
+            <div class="card-type">Member</div>
           </div>
-          <div class="apple-member-label">MEMBER</div>
-          <div class="apple-member-name">${escapeHtml(m.memberName)}</div>
-          <div class="apple-fields-row">
-            <div class="apple-field">
-              <div class="apple-field-label">Tier</div>
-              <div class="apple-field-value">${escapeHtml(m.tier)}</div>
+          <div class="card-name">${escapeHtml(m.memberName)}</div>
+          <div class="card-fields">
+            <div class="card-field">
+              <div class="card-field-label">Member Since</div>
+              <div class="card-field-value">${escapeHtml(m.memberSince)}</div>
             </div>
-            <div class="apple-field">
-              <div class="apple-field-label">Points</div>
-              <div class="apple-field-value">${Number(m.points).toLocaleString()}</div>
+            <div class="card-field">
+              <div class="card-field-label">Member ID</div>
+              <div class="card-field-value">${escapeHtml(m.memberId)}</div>
             </div>
-            <div class="apple-field">
-              <div class="apple-field-label">Status</div>
-              <div class="apple-field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
-            </div>
-          </div>
-          <div class="apple-aux-row">
-            <div class="apple-aux-field">
-              <div class="apple-aux-label">Member Since</div>
-              <div class="apple-aux-value">${escapeHtml(m.memberSince)}</div>
-            </div>
-            <div class="apple-aux-field">
-              <div class="apple-aux-label">Member ID</div>
-              <div class="apple-aux-value">${escapeHtml(m.memberId)}</div>
-            </div>
-            <div class="apple-aux-field">
-              <div class="apple-aux-label">Next Reward</div>
-              <div class="apple-aux-value">${m.nextReward} pts</div>
+            <div class="card-field">
+              <div class="card-field-label">Status</div>
+              <div class="card-field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
             </div>
           </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-track">
-              <div class="progress-bar-fill" style="width: ${pct}%"></div>
-            </div>
-            <div class="progress-label">${Number(m.points).toLocaleString()} / ${Number(m.pointsMax).toLocaleString()} pts to next reward</div>
-          </div>
-          <div class="apple-qr">
-            <div class="apple-qr-frame">
+          <div class="card-divider"></div>
+          <div class="card-qr">
+            <div class="card-qr-frame">
               <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
             </div>
-            <div class="apple-qr-text">Scan to earn &amp; redeem</div>
-          </div>
-          <div class="apple-stats">
-            <div class="apple-stat">
-              <div class="apple-stat-label">Last Visit</div>
-              <div class="apple-stat-value">${escapeHtml(m.lastVisit)}</div>
-            </div>
-            <div class="apple-stat">
-              <div class="apple-stat-label">Total Visits</div>
-              <div class="apple-stat-value">${m.totalVisits}</div>
-            </div>
-            <div class="apple-stat">
-              <div class="apple-stat-label">Saved</div>
-              <div class="apple-stat-value">${escapeHtml(m.saved)}</div>
-            </div>
+            <div class="card-qr-text">Scan to earn &amp; redeem</div>
           </div>
         </div>
       </div>
@@ -535,46 +327,35 @@ function renderDownloadPage(pass, baseUrl) {
       <!-- GOOGLE WALLET -->
       <div class="preview-col">
         <div class="preview-label">Google Wallet</div>
-        <div class="google-card">
-          <div class="google-header">
-            <div class="google-logo">
+        <div class="wallet-card google-card">
+          <div class="card-header">
+            <div class="card-logo">
               <img src="${LOGO_DATA_URI}" alt="Emporium">
-              <div class="google-logo-text">Emporium<span>.</span></div>
+              <div class="card-logo-text">Emporium<span>.</span></div>
             </div>
-            <div class="google-type">Loyalty Card</div>
+            <div class="card-type">Member</div>
           </div>
-          <div class="google-member-name">${escapeHtml(m.memberName)}</div>
-          <div class="google-member-tier">${escapeHtml(m.tier)} Member</div>
-          <div class="google-row">
-            <span class="google-row-label">Points</span>
-            <span class="google-row-value">${Number(m.points).toLocaleString()}</span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Member Since</span>
-            <span class="google-row-value">${escapeHtml(m.memberSince)}</span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Member ID</span>
-            <span class="google-row-value">${escapeHtml(m.memberId)}</span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Status</span>
-            <span class="google-row-value">${escapeHtml(m.status)} <span class="google-dot"></span></span>
-          </div>
-          <div class="google-row">
-            <span class="google-row-label">Next Reward</span>
-            <span class="google-row-value">${m.nextReward} pts away</span>
-          </div>
-          <div class="google-progress">
-            <div class="google-progress-track">
-              <div class="google-progress-fill" style="width: ${pct}%"></div>
+          <div class="card-name">${escapeHtml(m.memberName)}</div>
+          <div class="card-fields">
+            <div class="card-field">
+              <div class="card-field-label">Member Since</div>
+              <div class="card-field-value">${escapeHtml(m.memberSince)}</div>
             </div>
-            <div class="google-progress-label">${Number(m.points).toLocaleString()} / ${Number(m.pointsMax).toLocaleString()} pts</div>
+            <div class="card-field">
+              <div class="card-field-label">Member ID</div>
+              <div class="card-field-value">${escapeHtml(m.memberId)}</div>
+            </div>
+            <div class="card-field">
+              <div class="card-field-label">Status</div>
+              <div class="card-field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
+            </div>
           </div>
-          <div class="google-qr">
-            <div class="google-qr-frame">
+          <div class="card-divider"></div>
+          <div class="card-qr">
+            <div class="card-qr-frame">
               <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
             </div>
+            <div class="card-qr-text">Scan to earn &amp; redeem</div>
           </div>
         </div>
       </div>
@@ -611,7 +392,7 @@ function renderListPage(passes, baseUrl) {
       <div class="pass-row-avatar">${escapeHtml(m.memberName).charAt(0)}</div>
       <div class="pass-row-info">
         <div class="pass-row-name">${escapeHtml(m.memberName)}</div>
-        <div class="pass-row-meta">${escapeHtml(m.tier)} &middot; ${Number(m.points).toLocaleString()} pts &middot; ${escapeHtml(m.memberId)}</div>
+        <div class="pass-row-meta">${escapeHtml(m.memberId)} &middot; ${escapeHtml(m.status)}</div>
       </div>
       <div class="pass-row-end">
         <span class="badge-active"><span class="badge-dot"></span> ${escapeHtml(m.status)}</span>
@@ -639,21 +420,23 @@ function renderListPage(passes, baseUrl) {
       align-items: center;
       gap: 12px;
       padding: 24px 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       margin-bottom: 32px;
     }
     .header-bar img { width: 36px; height: 36px; border-radius: 8px; }
     .header-brand {
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -0.3px;
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
     .header-brand span { color: var(--primary); }
 
     .list-title {
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-family: var(--font-display);
+      font-size: 36px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       margin-bottom: 8px;
     }
     .list-subtitle {
@@ -667,16 +450,16 @@ function renderListPage(passes, baseUrl) {
       align-items: center;
       gap: 16px;
       padding: 16px 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
       margin-bottom: 12px;
       text-decoration: none;
       color: var(--text);
       transition: all 0.2s;
     }
     .pass-row:hover {
-      background: var(--card);
+      background: rgba(255,255,255,0.08);
       border-color: var(--primary);
       box-shadow: 0 0 0 1px var(--primary), 0 0 30px rgba(0,191,166,0.12);
       color: var(--text);
@@ -690,15 +473,17 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 18px;
+      font-family: var(--font-display);
+      font-size: 20px;
       color: var(--bg);
       flex-shrink: 0;
     }
     .pass-row-info { flex: 1; min-width: 0; }
     .pass-row-name {
-      font-weight: 700;
-      font-size: 15px;
+      font-family: var(--font-display);
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -736,14 +521,16 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--card);
+      background: rgba(255,255,255,0.04);
       border-radius: 16px;
       color: var(--muted);
     }
     .empty-icon svg { width: 28px; height: 28px; }
     .empty-title {
-      font-size: 20px;
-      font-weight: 700;
+      font-family: var(--font-display);
+      font-size: 24px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       margin-bottom: 8px;
     }
     .empty-desc {
@@ -761,9 +548,10 @@ function renderListPage(passes, baseUrl) {
       color: var(--bg);
       border: none;
       border-radius: 10px;
-      font-family: var(--font);
+      font-family: var(--font-display);
       font-size: 14px;
-      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       cursor: pointer;
     }
     .btn-create:hover { background: #00D9BD; }
@@ -788,7 +576,7 @@ function renderListPage(passes, baseUrl) {
     </div>
 
     <div class="list-title">Wallet Passes</div>
-    <div class="list-subtitle">${passes.length > 0 ? `${passes.length} member pass${passes.length !== 1 ? 'es' : ''}` : ''}</div>
+    <div class="list-subtitle">${passes.length > 0 ? `${passes.length} pass${passes.length !== 1 ? 'es' : ''}` : ''}</div>
 
     ${passes.length === 0 ? `
       <div class="empty-state">
@@ -796,7 +584,7 @@ function renderListPage(passes, baseUrl) {
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
         </div>
         <div class="empty-title">No passes yet</div>
-        <p class="empty-desc">Create your first member pass to start distributing to customers.</p>
+        <p class="empty-desc">Create your first pass to start distributing to customers.</p>
         <button class="btn-create" onclick="fetch('${baseUrl}/pass/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).then(r=>r.json()).then(()=>location.reload())">
           Create a Pass
         </button>

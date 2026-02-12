@@ -39,13 +39,8 @@ app.listen(config.port, config.host, async () => {
     try {
       const pass = await passGenerator.generatePass({
         memberName: 'Jane Doe',
-        tier: 'Gold',
-        points: 1250,
-        pointsMax: 1500,
         status: 'Active',
         memberSince: 'Feb 2026',
-        totalVisits: 24,
-        saved: '$186',
         label: 'Emporium Grooming & Supply',
       });
       console.log(`Default pass generated: ${pass.pageUrl}`);

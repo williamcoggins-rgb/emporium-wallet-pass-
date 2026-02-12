@@ -6,17 +6,10 @@
   "organizationName": "Emporium Grooming & Supply",
   "description": "{{description}}",
   "logoText": "Emporium",
-  "foregroundColor": "rgb(240, 240, 245)",
-  "backgroundColor": "rgb(15, 17, 23)",
+  "foregroundColor": "rgb(26, 26, 26)",
+  "backgroundColor": "rgb(255, 255, 255)",
   "labelColor": "rgb(0, 191, 166)",
   "generic": {
-    "headerFields": [
-      {
-        "key": "type",
-        "label": "",
-        "value": "MEMBER"
-      }
-    ],
     "primaryFields": [
       {
         "key": "member",
@@ -25,23 +18,6 @@
       }
     ],
     "secondaryFields": [
-      {
-        "key": "tier",
-        "label": "TIER",
-        "value": "{{tier}}"
-      },
-      {
-        "key": "points",
-        "label": "POINTS",
-        "value": "{{points}}"
-      },
-      {
-        "key": "status",
-        "label": "STATUS",
-        "value": "{{status}}"
-      }
-    ],
-    "auxiliaryFields": [
       {
         "key": "memberSince",
         "label": "MEMBER SINCE",
@@ -53,16 +29,16 @@
         "value": "{{memberId}}"
       },
       {
-        "key": "nextReward",
-        "label": "NEXT REWARD",
-        "value": "{{nextReward}} pts"
+        "key": "status",
+        "label": "STATUS",
+        "value": "{{status}}"
       }
     ],
     "backFields": [
       {
         "key": "info",
         "label": "About",
-        "value": "Emporium Grooming & Supply - Your premium grooming destination. Earn points on every visit and unlock rewards."
+        "value": "Emporium Grooming & Supply - Your premium grooming destination."
       },
       {
         "key": "website",
