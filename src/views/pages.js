@@ -3,13 +3,12 @@
  *
  * Design tokens:
  *   Primary:    #00BFA6 (teal)
- *   Accent:     #E8475F (coral)
- *   Card bg:    #FFFFFF (white)
- *   Page bg:    #0F1117 (dark)
- *   Text dark:  #1A1A1A
- *   Muted:      #999999
- *
- * Font: Anton (Nike Air Max bold condensed style)
+ *   Accent:     #E8475F (red for progress bar / badges)
+ *   Dark bg:    #0F1117
+ *   Surface:    #1A1D27
+ *   Card bg:    #1E2130
+ *   Text:       #F0F0F5
+ *   Muted:      #8B8FA3
  */
 
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
@@ -20,27 +19,29 @@ const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toStrin
 
 function baseStyles() {
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
     :root {
       --bg: #0F1117;
+      --surface: #1A1D27;
       --card: #FFFFFF;
+      --card-google: #FFFFFF;
       --border: #E5E7EB;
       --text: #F0F0F5;
-      --text-dark: #1A1A1A;
-      --text-secondary: #666666;
-      --muted: #999999;
+      --text-secondary: #C0C4D6;
+      --muted: #6B7085;
       --primary: #00BFA6;
       --accent: #E8475F;
+      --accent-bg: rgba(232,71,95,0.15);
       --green-dot: #34D399;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-display: 'Anton', 'Impact', 'Arial Black', sans-serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { font-size: 16px; -webkit-font-smoothing: antialiased; }
     body {
-      font-family: var(--font-body);
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -56,9 +57,16 @@ function baseStyles() {
 function defaultMember() {
   return {
     memberName: 'Jane Doe',
+    tier: 'Gold',
+    points: 1250,
+    pointsMax: 1500,
     status: 'Active',
     memberSince: 'Feb 2026',
     memberId: 'EG-00482',
+    nextReward: 250,
+    lastVisit: 'Today',
+    totalVisits: 24,
+    saved: '$186',
   };
 }
 
@@ -70,7 +78,7 @@ function renderDownloadPage(pass, baseUrl) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Emporium Grooming &amp; Supply - Wallet Pass</title>
+  <title>Emporium Grooming &amp; Supply - Wallet Pass Design Preview</title>
   <link rel="icon" href="${LOGO_DATA_URI}">
   <style>
     ${baseStyles()}
@@ -78,10 +86,10 @@ function renderDownloadPage(pass, baseUrl) {
     .page { padding: 40px 24px 60px; }
     .page-title {
       text-align: center;
-      font-family: var(--font-display);
-      font-size: 14px;
-      letter-spacing: 4px;
       text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 13px;
+      font-weight: 600;
       color: var(--muted);
       margin-bottom: 48px;
     }
@@ -100,79 +108,88 @@ function renderDownloadPage(pass, baseUrl) {
     }
     .preview-label {
       text-align: center;
-      font-family: var(--font-display);
-      letter-spacing: 3px;
       text-transform: uppercase;
-      font-size: 12px;
+      letter-spacing: 2px;
+      font-size: 11px;
+      font-weight: 600;
       color: var(--muted);
       margin-bottom: 20px;
     }
 
-    /* ---- WHITE CARD (shared) ---- */
-    .wallet-card {
+    /* ---- APPLE WALLET CARD ---- */
+    .apple-card {
       background: var(--card);
-      border-radius: 20px;
-      padding: 32px 28px 28px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
-      color: var(--text-dark);
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
     }
-
-    .card-header {
+    .apple-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
-    .card-logo {
+    .apple-logo {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .card-logo img { width: 34px; height: 34px; border-radius: 8px; }
-    .card-logo-text {
+    .apple-logo img { width: 32px; height: 32px; border-radius: 7px; }
+    .apple-logo-text {
       font-family: var(--font-display);
       font-size: 20px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: var(--text-dark);
+      color: #1a1a1a;
     }
-    .card-logo-text span { color: var(--primary); }
-    .card-type {
-      font-family: var(--font-display);
+    .apple-logo-text span { color: var(--primary); }
+    .badge-member {
+      background: var(--accent);
+      color: white;
       font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
     }
 
-    .card-name {
+    .apple-member-label {
+      color: var(--accent);
       font-family: var(--font-display);
-      font-size: 42px;
-      line-height: 1;
+      font-size: 12px;
+      text-transform: uppercase;
       letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--text-dark);
-      margin-bottom: 32px;
-    }
-
-    .card-fields {
-      display: flex;
-      gap: 0;
-      margin-bottom: 8px;
-    }
-    .card-field { flex: 1; }
-    .card-field-label {
-      font-family: var(--font-display);
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
       margin-bottom: 4px;
     }
-    .card-field-value {
-      font-size: 15px;
+    .apple-member-name {
+      font-family: var(--font-display);
+      font-size: 32px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      margin-bottom: 28px;
+    }
+
+    .apple-fields-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+    .apple-field {
+      flex: 1;
+    }
+    .apple-field-label {
+      font-size: 10px;
       font-weight: 700;
-      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .apple-field-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -185,37 +202,203 @@ function renderDownloadPage(pass, baseUrl) {
       background: var(--green-dot);
     }
 
-    .card-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 20px 0;
+    .apple-aux-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+    }
+    .apple-aux-field { flex: 1; }
+    .apple-aux-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .apple-aux-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
     }
 
-    .card-qr {
+    .progress-bar-wrap {
+      margin-bottom: 6px;
+    }
+    .progress-bar-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .apple-qr {
       text-align: center;
-      padding-top: 8px;
+      margin-top: 28px;
     }
-    .card-qr-frame {
+    .apple-qr-frame {
       display: inline-block;
-      padding: 12px;
+      padding: 14px;
       border: 2px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
     }
-    .card-qr-frame img {
+    .apple-qr-frame img {
       display: block;
       width: 140px;
       height: 140px;
     }
-    .card-qr-text {
+    .apple-qr-text {
       margin-top: 10px;
       font-size: 12px;
       color: var(--muted);
     }
 
-    /* Apple-specific accent stripe */
-    .apple-card { border-top: 4px solid var(--primary); }
-    /* Google-specific accent stripe */
-    .google-card { border-top: 4px solid #4285F4; }
+    .apple-stats {
+      display: flex;
+      margin-top: 24px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+    .apple-stat {
+      flex: 1;
+      text-align: center;
+    }
+    .apple-stat-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    .apple-stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    /* ---- GOOGLE WALLET CARD ---- */
+    .google-card {
+      background: var(--card-google);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      color: #1a1a1a;
+    }
+    .google-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .google-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .google-logo img { width: 32px; height: 32px; border-radius: 7px; }
+    .google-logo-text {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #1a1a1a;
+    }
+    .google-logo-text span { color: var(--primary); }
+    .google-type {
+      font-size: 13px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .google-member-name {
+      font-family: var(--font-display);
+      font-size: 30px;
+      color: #1a1a1a;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .google-member-tier {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 24px;
+    }
+
+    .google-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-top: 1px solid #eee;
+    }
+    .google-row-label {
+      font-size: 14px;
+      color: #777;
+      font-weight: 500;
+    }
+    .google-row-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .google-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green-dot);
+    }
+
+    .google-progress {
+      padding: 14px 0;
+      border-top: 1px solid #eee;
+    }
+    .google-progress-track {
+      height: 4px;
+      background: #e5e5e5;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .google-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .google-progress-label {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .google-qr {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .google-qr-frame {
+      display: inline-block;
+      padding: 8px;
+    }
+    .google-qr-frame img {
+      display: block;
+      width: 140px;
+      height: 140px;
+    }
 
     /* ---- ACTIONS BAR ---- */
     .actions-bar {
@@ -236,10 +419,9 @@ function renderDownloadPage(pass, baseUrl) {
       padding: 14px 28px;
       border: none;
       border-radius: 12px;
-      font-family: var(--font-display);
+      font-family: var(--font);
       font-size: 14px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       text-decoration: none;
@@ -258,7 +440,7 @@ function renderDownloadPage(pass, baseUrl) {
     .btn-outline {
       background: transparent;
       color: var(--text);
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid var(--border);
     }
     .btn-outline:hover {
       border-color: var(--primary);
@@ -271,7 +453,7 @@ function renderDownloadPage(pass, baseUrl) {
       padding: 24px;
       font-size: 12px;
       color: var(--muted);
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid var(--border);
     }
 
     @media (max-width: 720px) {
@@ -279,47 +461,60 @@ function renderDownloadPage(pass, baseUrl) {
       .preview-col { flex: 1 1 100%; max-width: 400px; }
       .page { padding: 24px 16px 40px; }
       .page-title { margin-bottom: 32px; }
-      .card-name { font-size: 34px; }
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <div class="page-title">Emporium &mdash; Wallet Pass</div>
+    <div class="page-title">Emporium &mdash; Wallet Pass Design Preview</div>
 
     <div class="previews">
       <!-- APPLE WALLET -->
       <div class="preview-col">
         <div class="preview-label">Apple Wallet</div>
-        <div class="wallet-card apple-card">
-          <div class="card-header">
-            <div class="card-logo">
+        <div class="apple-card">
+          <div class="apple-header">
+            <div class="apple-logo">
               <img src="${LOGO_DATA_URI}" alt="Emporium">
-              <div class="card-logo-text">Emporium<span>.</span></div>
+              <div class="apple-logo-text">Emporium<span>.</span></div>
             </div>
-            <div class="card-type">Member</div>
+            <div class="badge-member">MEMBER</div>
           </div>
-          <div class="card-name">${escapeHtml(m.memberName)}</div>
-          <div class="card-fields">
-            <div class="card-field">
-              <div class="card-field-label">Member Since</div>
-              <div class="card-field-value">${escapeHtml(m.memberSince)}</div>
+          <div class="apple-member-label">MEMBER</div>
+          <div class="apple-member-name">${escapeHtml(m.memberName)}</div>
+          <div class="apple-fields-row">
+            <div class="apple-field">
+              <div class="apple-field-label">Status</div>
+              <div class="apple-field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
             </div>
-            <div class="card-field">
-              <div class="card-field-label">Member ID</div>
-              <div class="card-field-value">${escapeHtml(m.memberId)}</div>
+            <div class="apple-field">
+              <div class="apple-field-label">Member Since</div>
+              <div class="apple-field-value">${escapeHtml(m.memberSince)}</div>
             </div>
-            <div class="card-field">
-              <div class="card-field-label">Status</div>
-              <div class="card-field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
+            <div class="apple-field">
+              <div class="apple-field-label">Member ID</div>
+              <div class="apple-field-value">${escapeHtml(m.memberId)}</div>
             </div>
           </div>
-          <div class="card-divider"></div>
-          <div class="card-qr">
-            <div class="card-qr-frame">
+          <div class="apple-qr">
+            <div class="apple-qr-frame">
               <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
             </div>
-            <div class="card-qr-text">Scan to earn &amp; redeem</div>
+            <div class="apple-qr-text">Scan to earn &amp; redeem</div>
+          </div>
+          <div class="apple-stats">
+            <div class="apple-stat">
+              <div class="apple-stat-label">Last Visit</div>
+              <div class="apple-stat-value">${escapeHtml(m.lastVisit)}</div>
+            </div>
+            <div class="apple-stat">
+              <div class="apple-stat-label">Total Visits</div>
+              <div class="apple-stat-value">${m.totalVisits}</div>
+            </div>
+            <div class="apple-stat">
+              <div class="apple-stat-label">Saved</div>
+              <div class="apple-stat-value">${escapeHtml(m.saved)}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -327,35 +522,31 @@ function renderDownloadPage(pass, baseUrl) {
       <!-- GOOGLE WALLET -->
       <div class="preview-col">
         <div class="preview-label">Google Wallet</div>
-        <div class="wallet-card google-card">
-          <div class="card-header">
-            <div class="card-logo">
+        <div class="google-card">
+          <div class="google-header">
+            <div class="google-logo">
               <img src="${LOGO_DATA_URI}" alt="Emporium">
-              <div class="card-logo-text">Emporium<span>.</span></div>
+              <div class="google-logo-text">Emporium<span>.</span></div>
             </div>
-            <div class="card-type">Member</div>
+            <div class="google-type">Loyalty Card</div>
           </div>
-          <div class="card-name">${escapeHtml(m.memberName)}</div>
-          <div class="card-fields">
-            <div class="card-field">
-              <div class="card-field-label">Member Since</div>
-              <div class="card-field-value">${escapeHtml(m.memberSince)}</div>
-            </div>
-            <div class="card-field">
-              <div class="card-field-label">Member ID</div>
-              <div class="card-field-value">${escapeHtml(m.memberId)}</div>
-            </div>
-            <div class="card-field">
-              <div class="card-field-label">Status</div>
-              <div class="card-field-value">${escapeHtml(m.status)} <span class="status-dot"></span></div>
-            </div>
+          <div class="google-member-name">${escapeHtml(m.memberName)}</div>
+          <div class="google-row">
+            <span class="google-row-label">Member Since</span>
+            <span class="google-row-value">${escapeHtml(m.memberSince)}</span>
           </div>
-          <div class="card-divider"></div>
-          <div class="card-qr">
-            <div class="card-qr-frame">
+          <div class="google-row">
+            <span class="google-row-label">Member ID</span>
+            <span class="google-row-value">${escapeHtml(m.memberId)}</span>
+          </div>
+          <div class="google-row">
+            <span class="google-row-label">Status</span>
+            <span class="google-row-value">${escapeHtml(m.status)} <span class="google-dot"></span></span>
+          </div>
+          <div class="google-qr">
+            <div class="google-qr-frame">
               <img src="${baseUrl}/pass/${pass.id}/qr" alt="QR Code">
             </div>
-            <div class="card-qr-text">Scan to earn &amp; redeem</div>
           </div>
         </div>
       </div>
@@ -420,23 +611,21 @@ function renderListPage(passes, baseUrl) {
       align-items: center;
       gap: 12px;
       padding: 24px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--border);
       margin-bottom: 32px;
     }
     .header-bar img { width: 36px; height: 36px; border-radius: 8px; }
     .header-brand {
-      font-family: var(--font-display);
-      font-size: 20px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.3px;
     }
     .header-brand span { color: var(--primary); }
 
     .list-title {
-      font-family: var(--font-display);
-      font-size: 36px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
       margin-bottom: 8px;
     }
     .list-subtitle {
@@ -450,16 +639,16 @@ function renderListPage(passes, baseUrl) {
       align-items: center;
       gap: 16px;
       padding: 16px 20px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       margin-bottom: 12px;
       text-decoration: none;
       color: var(--text);
       transition: all 0.2s;
     }
     .pass-row:hover {
-      background: rgba(255,255,255,0.08);
+      background: var(--card);
       border-color: var(--primary);
       box-shadow: 0 0 0 1px var(--primary), 0 0 30px rgba(0,191,166,0.12);
       color: var(--text);
@@ -473,17 +662,15 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font-display);
-      font-size: 20px;
+      font-weight: 800;
+      font-size: 18px;
       color: var(--bg);
       flex-shrink: 0;
     }
     .pass-row-info { flex: 1; min-width: 0; }
     .pass-row-name {
-      font-family: var(--font-display);
-      font-size: 16px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
+      font-weight: 700;
+      font-size: 15px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -521,16 +708,14 @@ function renderListPage(passes, baseUrl) {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255,255,255,0.04);
+      background: var(--card);
       border-radius: 16px;
       color: var(--muted);
     }
     .empty-icon svg { width: 28px; height: 28px; }
     .empty-title {
-      font-family: var(--font-display);
-      font-size: 24px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-size: 20px;
+      font-weight: 700;
       margin-bottom: 8px;
     }
     .empty-desc {
@@ -548,10 +733,9 @@ function renderListPage(passes, baseUrl) {
       color: var(--bg);
       border: none;
       border-radius: 10px;
-      font-family: var(--font-display);
+      font-family: var(--font);
       font-size: 14px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-weight: 700;
       cursor: pointer;
     }
     .btn-create:hover { background: #00D9BD; }
@@ -576,7 +760,7 @@ function renderListPage(passes, baseUrl) {
     </div>
 
     <div class="list-title">Wallet Passes</div>
-    <div class="list-subtitle">${passes.length > 0 ? `${passes.length} pass${passes.length !== 1 ? 'es' : ''}` : ''}</div>
+    <div class="list-subtitle">${passes.length > 0 ? `${passes.length} member pass${passes.length !== 1 ? 'es' : ''}` : ''}</div>
 
     ${passes.length === 0 ? `
       <div class="empty-state">
@@ -584,7 +768,7 @@ function renderListPage(passes, baseUrl) {
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
         </div>
         <div class="empty-title">No passes yet</div>
-        <p class="empty-desc">Create your first pass to start distributing to customers.</p>
+        <p class="empty-desc">Create your first member pass to start distributing to customers.</p>
         <button class="btn-create" onclick="fetch('${baseUrl}/pass/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).then(r=>r.json()).then(()=>location.reload())">
           Create a Pass
         </button>
